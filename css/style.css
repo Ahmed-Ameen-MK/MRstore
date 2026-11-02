@@ -16,7 +16,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{
-  font-family:"Segoe UI",Tahoma,"Noto Kufi Arabic","Cairo",Arial,sans-serif;
+  font-family:"Cairo",system-ui,sans-serif;
   background:
     radial-gradient(1200px 600px at 80% -10%,#26272c 0%,transparent 60%),
     radial-gradient(900px 500px at -10% 110%,#1d1e22 0%,transparent 60%),
@@ -180,3 +180,25 @@ img{max-width:100%;display:block}
   .user-chip .hide-sm{display:none}
 }
 @media (max-width:360px){.grid{grid-template-columns:1fr}}
+
+/* ---------- Intro / loading screen ---------- */
+#intro{
+  position:fixed;inset:0;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;
+  background:radial-gradient(800px 500px at 50% 40%,#202126,#060607 70%);
+  transition:opacity .6s,visibility .6s;cursor:pointer;
+}
+#intro.hide{opacity:0;visibility:hidden}
+.no-intro #intro{display:none}
+#intro img{
+  width:150px;height:150px;border-radius:50%;
+  box-shadow:0 0 60px rgba(200,204,212,.22);animation:pulse 2.4s ease-in-out infinite;
+}
+.typed{display:flex;align-items:center;justify-content:center;min-height:3rem;direction:rtl}
+#introText{
+  font-size:clamp(1.5rem,5vw,2.4rem);font-weight:800;letter-spacing:.5px;
+  background:linear-gradient(180deg,#fff,#9ea1a8);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.caret{display:inline-block;width:3px;height:1.6em;background:var(--silver);margin-inline-start:6px;animation:blink .8s steps(1) infinite}
+.skip-hint{position:absolute;bottom:22px;color:var(--muted);font-size:.8rem;opacity:.7}
+@keyframes blink{50%{opacity:0}}
+@keyframes pulse{50%{transform:scale(1.04);box-shadow:0 0 80px rgba(200,204,212,.35)}}
