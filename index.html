@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0a0b">
+<title>MR store</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-in">
+    <button class="menu-btn" id="menuBtn" aria-label="التصنيفات">☰</button>
+    <a href="index.html" class="brand"><img src="icon.png" alt="MR"><span>MR store</span></a>
+
+    <div class="search">
+      <input id="q" type="search" placeholder="ابحث في المنتجات..." autocomplete="off">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    </div>
+
+    <div class="auth-area" id="authArea"></div>
+  </div>
+</header>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <h3>التصنيفات</h3>
+    <div id="cats"></div>
+  </aside>
+
+  <main class="content">
+    <div class="bar">
+      <h2 id="title">كل المنتجات</h2>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="grid" id="grid">
+      <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+    </div>
+  </main>
+</div>
+
+<script src="js/common.js"></script>
+<script>
+const MAX_WORDS = 12;          // أقصى عدد كلمات للوصف قبل ...
+const ALL = "__all__";
+let products = [];
+let state = { cat: ALL, q: "" };
+
+/* ---------- الهيدر ---------- */
+function renderAuth(){
+  const u = getUser();
+  const box = document.getElementById("authArea");
+  if (u){
+    box.innerHTML = `<div class="user-chip"><span class="hide-sm">أهلاً</span> <b>${escapeHtml(u.name)}</b></div>
+                     <button class="btn" id="logoutBtn">خروج</button>`;
+    document.getElementById("logoutBtn").onclick = logout;
+  } else {
+    box.innerHTML = `<a class="btn" href="auth/login.html">Login</a>
+                     <a class="btn primary" href="auth/register.html">Sign up</a>`;
+  }
+}
+
+/* ---------- المنتجات ---------- */
+function shortDesc(t){
+  const words = String(t ?? "").trim().split(/\s+/).filter(Boolean);
+  return words.length > MAX_WORDS ? words.slice(0, MAX_WORDS).join(" ") + " ..." : words.join(" ");
+}
+
+function catKey(p){ return String(p.category ?? "").trim() || "غير مصنف"; }
+
+function renderCats(){
+  const map = new Map();
+  products.forEach(p => { const k = catKey(p); map.set(k, (map.get(k) || 0) + 1); });
+  const names = [...map.keys()].sort((a,b)=>a.localeCompare(b,"ar"));
+  const box = document.getElementById("cats");
+  box.innerHTML =
+    `<button class="cat ${state.cat===ALL?"active":""}" data-c="${ALL}">الكل <small>${products.length}</small></button>` +
+    names.map(n => `<button class="cat ${state.cat===n?"active":""}" data-c="${escapeHtml(n)}">${escapeHtml(n)} <small>${map.get(n)}</small></button>`).join("");
+  box.querySelectorAll(".cat").forEach(b => b.onclick = () => {
+    state.cat = b.dataset.c;
+    renderCats(); renderProducts(); closeMenu();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+}
+
+function matches(p){
+  if (state.cat !== ALL && catKey(p) !== state.cat) return false;
+  const q = norm(state.q);
+  if (!q) return true;
+  // البحث في "كل" خانات الصف
+  return Object.values(p).some(v => norm(v).includes(q));
+}
+
+function renderProducts(){
+  const list = products.filter(matches);
+  const grid = document.getElementById("grid");
+  document.getElementById("title").textContent = state.cat === ALL ? "كل المنتجات" : state.cat;
+  document.getElementById("count").textContent = list.length + " منتج";
+  if (!list.length){
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1">لا توجد منتجات مطابقة</div>`;
+    return;
+  }
+  grid.innerHTML = list.map(p => `
+    <article class="card">
+      <div class="thumb">
+        <img loading="lazy" src="${escapeHtml(p.avatar_url || "icon.png")}" alt="${escapeHtml(p.title)}" onerror="this.src='icon.png'">
+        <span class="badge">${escapeHtml(catKey(p))}</span>
+      </div>
+      <div class="info">
+        <h4>${escapeHtml(p.title)}</h4>
+        <p>${escapeHtml(shortDesc(p.description))}</p>
+        <div class="price">${escapeHtml(p.price)} ${CURRENCY}</div>
+      </div>
+    </article>`).join("");
+}
+
+async function load(){
+  const { data, error } = await sb.from("store").select("*").order("id", { ascending: false });
+  if (error){
+    document.getElementById("grid").innerHTML = `<div class="empty" style="grid-column:1/-1">تعذر تحميل المنتجات: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+  products = data || [];
+  renderCats(); renderProducts();
+}
+
+/* ---------- البحث ---------- */
+let t;
+document.getElementById("q").addEventListener("input", e => {
+  clearTimeout(t);
+  t = setTimeout(() => { state.q = e.target.value; renderProducts(); }, 120);
+});
+
+/* ---------- القائمة الجانبية للجوال ---------- */
+const sidebar = document.getElementById("sidebar"), overlay = document.getElementById("overlay");
+function closeMenu(){ sidebar.classList.remove("open"); overlay.classList.remove("show"); }
+document.getElementById("menuBtn").onclick = () => { sidebar.classList.add("open"); overlay.classList.add("show"); };
+overlay.onclick = closeMenu;
+
+renderAuth();
+load();
+</script>
+</body>
+</html>
