@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0a0b">
+<title>عن المتجر | MR store</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/site.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<header class="header">
+  <div class="header-in">
+    <a href="index.html" class="brand"><img src="icon.png" alt="MR"><span>MR store</span></a>
+    <span class="sp"></span>
+    <div class="auth-area" id="authArea"></div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-img"></div>
+  <div class="hero-in"><h1>عن المتجر</h1><p>الثقة تكتسب — نحن الأفضل</p></div>
+</section>
+
+<main class="doc">
+  <div class="panel">
+    <h2>من نحن</h2>
+    <p>MR store متجر إلكتروني بتصميم عصري يهدف إلى تقديم تجربة تسوّق سهلة وموثوقة، بمنتجات مختارة بعناية وأسعار واضحة، وفريق دعم يرد عليك في أقرب وقت.</p>
+    <div class="vals">
+      <div class="val"><b>الثقة</b><span>نبني علاقتنا معك على الوضوح والمصداقية</span></div>
+      <div class="val"><b>الجودة</b><span>منتجات مختارة تلبّي توقعاتك</span></div>
+      <div class="val"><b>الدعم</b><span>نحن بجانبك قبل الشراء وبعده</span></div>
+    </div>
+  </div>
+
+  <div class="panel" id="msgPanel">
+    <h2>أرسل لنا رسالة</h2>
+    <p style="margin-bottom:12px">لديك اقتراح أو استفسار؟ اكتب لنا وسنرد عليك في قسم «الرسائل» بجوار اسمك أعلى الصفحة.</p>
+    <div class="login-note" id="msgLogin" hidden>سجّل الدخول أولاً لإرسال رسالة. <a href="auth/login.html">تسجيل الدخول</a></div>
+    <textarea class="txt" id="aboutTxt" maxlength="2000" placeholder="اكتب رسالتك هنا..."></textarea>
+    <div style="margin-top:12px"><button class="btn primary" id="aboutSend">إرسال الرسالة</button></div>
+    <div class="note" id="aboutNote"></div>
+  </div>
+
+  <div class="panel" id="ratePanel">
+    <h2>قيّم المتجر</h2>
+    <p>اختر عدد النجوم التي تراها مناسبة لتجربتك معنا.</p>
+    <div class="login-note" id="rateLogin" hidden style="margin-top:12px">سجّل الدخول أولاً لتقييم المتجر. <a href="auth/login.html">تسجيل الدخول</a></div>
+    <div class="stars" id="stars" role="radiogroup" aria-label="التقييم">
+      <button class="star" data-n="1" aria-label="نجمة">★</button>
+      <button class="star" data-n="2" aria-label="نجمتان">★</button>
+      <button class="star" data-n="3" aria-label="ثلاث نجوم">★</button>
+      <button class="star" data-n="4" aria-label="أربع نجوم">★</button>
+      <button class="star" data-n="5" aria-label="خمس نجوم">★</button>
+    </div>
+    <button class="btn primary" id="rateSend">إرسال التقييم</button>
+    <div class="note" id="rateNote"></div>
+  </div>
+</main>
+
+<script src="js/common.js"></script>
+<script src="js/site.js"></script>
+<script>
+initSite();
+const me = getUser(), logged = !!(me && me.h);
+const $ = s => document.querySelector(s);
+const note = (el, t, type) => { el.textContent = t || ""; el.className = "note " + (type || ""); };
+
+/* ---------- إرسال رسالة (type = message) ---------- */
+if (!logged){ $("#msgLogin").hidden = false; $("#aboutTxt").disabled = true; $("#aboutSend").disabled = true; }
+$("#aboutSend").onclick = async () => {
+  const v = $("#aboutTxt").value.trim();
+  if (!v) return note($("#aboutNote"), "اكتب رسالتك أولاً", "err");
+  $("#aboutSend").disabled = true; note($("#aboutNote"), "جاري الإرسال...");
+  try {
+    await sendContact("message", v);
+    $("#aboutTxt").value = "";
+    note($("#aboutNote"), "تم إرسال رسالتك بنجاح، شكراً لتواصلك معنا ✓", "ok");
+  } catch (e) { note($("#aboutNote"), "تعذر الإرسال: " + (e.message || e), "err"); }
+  $("#aboutSend").disabled = false;
+};
+
+/* ---------- التقييم (type = rating، المحتوى = عدد النجوم 1..5) ---------- */
+const starEls = [...document.querySelectorAll(".star")];
+let rate = 0;
+const paint = n => starEls.forEach((s, i) => s.classList.toggle("on", i < n));
+starEls.forEach(s => {
+  s.addEventListener("mouseenter", () => { if (logged) paint(+s.dataset.n); });
+  s.addEventListener("click", () => { if (!logged) return; rate = +s.dataset.n; paint(rate); note($("#rateNote"), ""); });
+});
+$("#stars").addEventListener("mouseleave", () => paint(rate));
+
+if (!logged){
+  $("#rateLogin").hidden = false; $("#rateSend").disabled = true; starEls.forEach(s => s.disabled = true);
+} else {
+  rpcUser("mr_my_messages", { p_type: "rating" }).then(rows => {
+    const last = (rows || []).filter(r => r.from !== "admin").pop();
+    if (last){ rate = +last.content || 0; paint(rate); note($("#rateNote"), "تقييمك الحالي: " + rate + " من 5 — يمكنك تغييره."); }
+  }).catch(() => {});
+}
+$("#rateSend").onclick = async () => {
+  if (!rate) return note($("#rateNote"), "اختر عدد النجوم أولاً", "err");
+  $("#rateSend").disabled = true; note($("#rateNote"), "جاري الإرسال...");
+  try {
+    await sendContact("rating", String(rate));
+    note($("#rateNote"), "شكراً لتقييمك ✓", "ok");
+  } catch (e) { note($("#rateNote"), "تعذر إرسال التقييم: " + (e.message || e), "err"); }
+  $("#rateSend").disabled = false;
+};
+</script>
+</body>
+</html>

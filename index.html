@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/site.css">
 <script>try{if(sessionStorage.getItem("mr_intro"))document.documentElement.classList.add("no-intro")}catch(e){}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -55,25 +56,12 @@
 </div>
 
 <script src="js/common.js"></script>
+<script src="js/site.js"></script>
 <script>
 const MAX_WORDS = 12;          // أقصى عدد كلمات للوصف قبل ...
 const ALL = "__all__";
 let products = [];
 let state = { cat: ALL, q: "" };
-
-/* ---------- الهيدر ---------- */
-function renderAuth(){
-  const u = getUser();
-  const box = document.getElementById("authArea");
-  if (u){
-    box.innerHTML = (u.status === "admin" ? '<a class="btn primary" href="admin/dashboard.html">لوحة التحكم</a>' : "") + `<div class="user-chip"><span class="hide-sm">أهلاً</span> <b>${escapeHtml(u.name)}</b></div>
-                     <button class="btn" id="logoutBtn">خروج</button>`;
-    document.getElementById("logoutBtn").onclick = logout;
-  } else {
-    box.innerHTML = `<a class="btn" href="auth/login.html">Login</a>
-                     <a class="btn primary" href="auth/register.html">Sign up</a>`;
-  }
-}
 
 /* ---------- المنتجات ---------- */
 function shortDesc(t){
@@ -152,7 +140,7 @@ function closeMenu(){ sidebar.classList.remove("open"); overlay.classList.remove
 document.getElementById("menuBtn").onclick = () => { sidebar.classList.add("open"); overlay.classList.add("show"); };
 overlay.onclick = closeMenu;
 
-renderAuth();
+initSite();   // الهيدر + زر الدعم + الفوتر + الإشعارات
 load();
 </script>
 <script src="js/intro.js"></script>
