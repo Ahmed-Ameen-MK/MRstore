@@ -1,0 +1,107 @@
+/* ====== مكوّنات مشتركة: الدعم، الرسائل، الفوتر، صفحات المعلومات ====== */
+.sp{flex:1}
+
+/* أزرار أيقونات وإشعارات حمراء */
+.icon-btn{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;
+  border-radius:10px;background:var(--panel);border:1px solid var(--line);cursor:pointer;transition:.15s;color:var(--text)
+}
+.icon-btn:hover{border-color:var(--silver);background:var(--panel2)}
+.icon-btn svg{width:20px;height:20px}
+.badge-red{
+  position:absolute;top:-7px;left:-7px;min-width:19px;height:19px;padding:0 5px;border-radius:999px;
+  background:#e5282e;color:#fff;font-size:.72rem;font-weight:700;line-height:19px;text-align:center;
+  box-shadow:0 0 0 2px #0f0f11;pointer-events:none
+}
+
+/* زر الدعم العائم (أسفل يسار الشاشة) */
+.support-fab{
+  position:fixed;left:18px;bottom:18px;z-index:60;display:flex;align-items:center;gap:8px;
+  padding:12px 20px;border-radius:999px;border:1px solid #d8dade;cursor:pointer;font-family:inherit;font-size:.95rem;font-weight:700;
+  background:linear-gradient(180deg,#e9ebee,#aeb1b8);color:#101012;box-shadow:0 10px 30px rgba(0,0,0,.55);transition:.15s
+}
+.support-fab:hover{filter:brightness(1.08);transform:translateY(-2px)}
+.support-fab svg{width:20px;height:20px}
+.support-fab .badge-red{top:-7px;left:auto;right:-5px;box-shadow:0 0 0 2px #0a0a0b}
+@media (max-width:420px){.support-fab{padding:12px 14px}.support-fab .t{display:none}}
+
+/* نوافذ منبثقة */
+.m-back{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:14px}
+.m-box{
+  width:100%;max-width:520px;max-height:90vh;display:flex;flex-direction:column;background:#16171a;
+  border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden
+}
+.m-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)}
+.m-head h3{font-size:1.05rem}
+.m-x{background:none;border:0;color:var(--muted);font-size:1.7rem;cursor:pointer;line-height:1;padding:0 4px}
+.m-x:hover{color:#fff}
+.m-body{padding:14px 18px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:10px;min-height:150px}
+.m-foot{padding:12px 18px;border-top:1px solid var(--line)}
+.m-foot .row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px}
+.txt{
+  width:100%;min-height:90px;max-height:200px;resize:vertical;padding:11px 13px;background:var(--bg);
+  border:1px solid var(--line);border-radius:10px;outline:none;transition:.2s
+}
+.txt:focus{border-color:var(--silver);box-shadow:0 0 0 3px rgba(201,204,209,.13)}
+.thanks{background:#12241a;border:1px solid #235a3a;color:var(--ok);padding:10px 14px;border-radius:10px;font-size:.92rem}
+.chat-empty{margin:auto;color:var(--muted);text-align:center;font-size:.92rem;line-height:2}
+
+/* فقاعات المحادثة */
+.bub{max-width:86%;padding:9px 13px;border-radius:14px;font-size:.93rem;white-space:pre-wrap;word-break:break-word}
+.bub small{display:flex;gap:8px;align-items:center;flex-wrap:wrap;opacity:.8;font-size:.72rem;margin-top:5px}
+.bub.me{align-self:flex-start;background:linear-gradient(180deg,#2c2e33,#222327);border:1px solid var(--line);border-end-start-radius:4px}
+.bub.admin{align-self:flex-end;background:linear-gradient(180deg,#e9ebee,#b9bcc3);color:#101012;border-end-end-radius:4px}
+.bub.admin small{opacity:.7}
+
+/* علامتا الصح */
+.ticks{display:inline-flex;gap:5px;align-items:center;font-size:.72rem}
+.ticks b{letter-spacing:-3px;font-size:.95rem}
+.ticks.none{color:#6d7078}
+.ticks.none b{opacity:.45}
+.ticks.done{color:var(--ok)}
+
+/* الفوتر */
+.site-footer{
+  margin-top:34px;border-top:1px solid var(--line);background:linear-gradient(180deg,#0f0f11,#0a0a0b);
+  padding:24px 16px 96px;text-align:center
+}
+.site-footer .links{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
+.site-footer .btn.on{border-color:var(--silver);background:var(--panel2)}
+.site-footer p{color:var(--muted);font-size:.85rem}
+
+/* صفحات: الخصوصية / الشروط / عن المتجر */
+.hero{
+  position:relative;min-height:clamp(220px,32vw,340px);display:flex;align-items:flex-end;justify-content:center;
+  text-align:center;margin-bottom:-26px
+}
+.hero-img{
+  position:absolute;inset:0;background:url("../background.png") center/cover no-repeat;
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 38%,transparent 100%);
+          mask-image:linear-gradient(to bottom,#000 0%,#000 38%,transparent 100%)
+}
+.hero-in{position:relative;padding:0 16px 52px}
+.hero h1{font-size:clamp(1.8rem,5vw,2.9rem);font-weight:800;text-shadow:0 3px 22px #000,0 0 6px #000}
+.hero p{color:#e4e6ea;text-shadow:0 2px 14px #000,0 0 6px #000}
+.doc{max-width:900px;margin:0 auto;padding:0 16px 10px;position:relative}
+.doc .panel{
+  background:linear-gradient(180deg,var(--panel),#141517);border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px;margin-bottom:16px;box-shadow:var(--shadow)
+}
+.doc h2{font-size:1.15rem;margin-bottom:8px}
+.doc p,.doc li{color:#c8cad0;font-size:.97rem}
+.doc ul{padding-inline-start:22px;margin-top:6px}
+.vals{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:14px}
+.val{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center}
+.val b{display:block;font-size:1.05rem;margin-bottom:4px}
+.val span{color:var(--muted);font-size:.88rem}
+.login-note{background:#1d1a10;border:1px solid #6b5320;color:#f0c24b;border-radius:10px;padding:10px 14px;font-size:.9rem;margin-bottom:12px}
+.login-note a{text-decoration:underline}
+.note{min-height:22px;margin-top:10px;font-size:.92rem}
+.note.ok{color:var(--ok)}.note.err{color:var(--danger)}
+
+/* النجوم */
+.stars{display:flex;gap:6px;margin:6px 0 14px}
+.star{background:none;border:0;font-size:2.4rem;line-height:1;cursor:pointer;color:#3a3c42;transition:.12s;padding:0;font-family:inherit}
+.star.on{color:#f0c24b;text-shadow:0 0 14px rgba(240,194,75,.45)}
+.star:hover{transform:scale(1.15)}
+.star:disabled{cursor:not-allowed;opacity:.5}
