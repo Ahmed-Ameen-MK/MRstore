@@ -6,6 +6,9 @@
 <meta name="theme-color" content="#0a0a0b">
 <title>إنشاء حساب | MR store</title>
 <link rel="icon" type="image/png" href="../icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -81,27 +84,19 @@ document.getElementById("form").addEventListener("submit", async e => {
 
   go.disabled = true; showMsg(msg, "جاري إنشاء الحساب...");
   try {
-    const [byEmail, byName] = await Promise.all([
-      sb.from("users").select("id").ilike("email", escapeLike(email)).limit(1),
-      sb.from("users").select("id").ilike("name", escapeLike(name)).limit(1)
-    ]);
-    if (byEmail.error) throw byEmail.error;
-    if (byName.error) throw byName.error;
-    if (byEmail.data.length) { showMsg(msg, "هذا البريد مسجّل من قبل", "err"); go.disabled = false; return; }
-    if (byName.data.length)  { showMsg(msg, "هذا الاسم مستخدم، اختر اسماً آخر", "err"); go.disabled = false; return; }
-
     const hash = await sha256(pass);
-    const { data, error } = await sb.from("users")
-      .insert({ name, email, country, password: hash })
-      .select("id,name,email,country,status")
-      .single();
+    const { data, error } = await sb.rpc("mr_register", { p_name: name, p_email: email, p_country: country, p_hash: hash });
     if (error) throw error;
 
-    setUser(data);
+    setUser({ ...data, h: hash });
     showMsg(msg, "تم إنشاء الحساب بنجاح ✓", "ok");
     setTimeout(() => location.href = "../index.html", 700);
   } catch (err) {
-    showMsg(msg, "خطأ: " + (err.message || err), "err");
+    const m = String(err.message || err);
+    showMsg(msg,
+      m.includes("email_exists") ? "هذا البريد مسجّل من قبل" :
+      m.includes("name_exists") ? "هذا الاسم مستخدم، اختر اسماً آخر" :
+      "خطأ: " + m, "err");
     go.disabled = false;
   }
 });

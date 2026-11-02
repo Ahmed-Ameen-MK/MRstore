@@ -6,6 +6,9 @@
 <meta name="theme-color" content="#0a0a0b">
 <title>تسجيل الدخول | MR store</title>
 <link rel="icon" type="image/png" href="../icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -68,20 +71,16 @@ document.getElementById("form").addEventListener("submit", async e => {
   go.disabled = true; showMsg(msg, "جاري التحقق...");
   try {
     const hash = await sha256(pass);
-    const { data, error } = await sb.from("users")
-      .select("id,name,email,country,status,password")
-      .ilike(mode, escapeLike(val));
+    const { data: user, error } = await sb.rpc("mr_login", { p_mode: mode, p_ident: val, p_hash: hash });
     if (error) throw error;
-
-    const user = (data || []).find(r => r.password === hash);
     if (!user) { showMsg(msg, "بيانات الدخول غير صحيحة", "err"); go.disabled = false; return; }
 
-    delete user.password;
-    setUser(user);
+    setUser({ ...user, h: hash });
     showMsg(msg, "تم تسجيل الدخول ✓", "ok");
     setTimeout(() => location.href = "../index.html", 500);
   } catch (err) {
-    showMsg(msg, "خطأ: " + (err.message || err), "err");
+    const m = String(err.message || err);
+    showMsg(msg, m.includes("blocked") ? "هذا الحساب محظور" : "خطأ: " + m, "err");
     go.disabled = false;
   }
 });
