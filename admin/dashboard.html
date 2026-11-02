@@ -35,6 +35,9 @@
     <button data-sec="users">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M17 4a4 4 0 0 1 0 8M22 21c0-3-2-5-4-5.6"/></svg>الأعضاء
     </button>
+    <button data-sec="inbox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>الرسائل<span class="nb" id="inboxBadge" hidden></span>
+    </button>
   </nav>
 
   <main>
@@ -100,6 +103,20 @@
       </div>
       <div class="items" id="userList"></div>
     </section>
+
+    <!-- ===== الرسائل ===== -->
+    <section id="sec-inbox" class="card" hidden>
+      <div class="head">
+        <div><h2>الرسائل</h2><div class="sub">الرسائل ومحادثات الدعم والتقييمات</div></div>
+        <button class="btn primary" id="inboxNew">+ إرسال رسالة</button>
+      </div>
+      <div class="tabs" id="inboxTabs">
+        <button data-tab="message" class="on">الرسائل <span class="nb" id="tabMsgN" hidden></span></button>
+        <button data-tab="support">رسائل ومحادثات الدعم <span class="nb" id="tabSupN" hidden></span></button>
+        <button data-tab="rating">التقييم</button>
+      </div>
+      <div id="inboxBody"></div>
+    </section>
   </main>
 </div>
 
@@ -140,7 +157,34 @@
   </div>
 </div>
 
+<!-- نافذة المحادثة -->
+<div class="modal" id="threadModal" hidden>
+  <div class="box wide">
+    <h3 id="thTitle"></h3>
+    <div class="sub" id="thSub" style="color:var(--muted);direction:ltr;text-align:start;margin:-8px 0 10px"></div>
+    <div class="chat" id="thBody"></div>
+    <textarea class="txtarea" id="thTxt" maxlength="2000" placeholder="اكتب ردك..."></textarea>
+    <div class="msg" id="thMsg"></div>
+    <div class="foot"><button class="btn" id="thClose">إغلاق</button><button class="btn primary" id="thSend">إرسال الرد</button></div>
+  </div>
+</div>
+
+<!-- نافذة إرسال رسالة لأعضاء -->
+<div class="modal" id="composeModal" hidden>
+  <div class="box wide">
+    <h3 id="cpTitle">إرسال رسالة</h3>
+    <input type="hidden" id="cpType" value="message">
+    <div class="pickbar"><input id="cpSearch" placeholder="ابحث بالاسم أو البريد..."><button type="button" class="btn sm" id="cpAll">تحديد الكل / إلغاء</button></div>
+    <div class="picklist" id="cpList"></div>
+    <div class="pickcount" id="cpCount" style="margin-bottom:10px"></div>
+    <textarea class="txtarea" id="cpTxt" maxlength="2000" placeholder="اكتب محتوى الرسالة..."></textarea>
+    <div class="msg" id="cpMsg"></div>
+    <div class="foot"><button class="btn" id="cpClose">إلغاء</button><button class="btn primary" id="cpSend">إرسال</button></div>
+  </div>
+</div>
+
 <div id="toast"></div>
 <script src="admin.js"></script>
+<script src="inbox.js"></script>
 </body>
 </html>

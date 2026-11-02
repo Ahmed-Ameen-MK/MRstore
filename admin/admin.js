@@ -105,9 +105,10 @@ async function uploadImage(file){
 /* ---------- التنقل ---------- */
 function showSection(name){
   document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("on", b.dataset.sec === name));
-  ["publish", "products", "users"].forEach(s => $("#sec-" + s).hidden = s !== name);
+  ["publish", "products", "users", "inbox"].forEach(s => $("#sec-" + s).hidden = s !== name);
   if (name === "users") loadUsers();
   if (name === "products") renderProducts();
+  if (name === "inbox") loadInbox();
 }
 
 /* ---------- المنتجات ---------- */
@@ -307,4 +308,6 @@ function init(){
   $("#logout").onclick = () => { localStorage.removeItem("mr_user"); location.replace("../index.html"); };
   $("#nav").addEventListener("click", e => { const b = e.target.closest("button"); if (b) showSection(b.dataset.sec); });
   loadProducts();
+  loadInbox(true);
+  setInterval(() => { if (!document.hidden) loadInbox(!$("#sec-inbox") || $("#sec-inbox").hidden); }, 60000);
 }
