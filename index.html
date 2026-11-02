@@ -6,10 +6,20 @@
 <meta name="theme-color" content="#0a0a0b">
 <title>MR store</title>
 <link rel="icon" type="image/png" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<script>try{if(sessionStorage.getItem("mr_intro"))document.documentElement.classList.add("no-intro")}catch(e){}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+
+<div id="intro" aria-label="MR store">
+  <img src="icon.png" alt="MR store">
+  <div class="typed"><span id="introText"></span><span class="caret"></span></div>
+  <div class="skip-hint">اضغط للتخطي</div>
+</div>
 
 <header class="header">
   <div class="header-in">
@@ -56,7 +66,7 @@ function renderAuth(){
   const u = getUser();
   const box = document.getElementById("authArea");
   if (u){
-    box.innerHTML = `<div class="user-chip"><span class="hide-sm">أهلاً</span> <b>${escapeHtml(u.name)}</b></div>
+    box.innerHTML = (u.status === "admin" ? '<a class="btn primary" href="admin/dashboard.html">لوحة التحكم</a>' : "") + `<div class="user-chip"><span class="hide-sm">أهلاً</span> <b>${escapeHtml(u.name)}</b></div>
                      <button class="btn" id="logoutBtn">خروج</button>`;
     document.getElementById("logoutBtn").onclick = logout;
   } else {
@@ -145,5 +155,6 @@ overlay.onclick = closeMenu;
 renderAuth();
 load();
 </script>
+<script src="js/intro.js"></script>
 </body>
 </html>
