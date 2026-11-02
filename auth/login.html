@@ -1,1 +1,90 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0a0b">
+<title>تسجيل الدخول | MR store</title>
+<link rel="icon" type="image/png" href="../icon.png">
+<link rel="stylesheet" href="../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="auth-wrap">
+  <form class="auth-card" id="form" novalidate>
+    <div class="logo">
+      <img src="../icon.png" alt="MR">
+      <h1>تسجيل الدخول</h1>
+    </div>
 
+    <div class="field">
+      <label id="idLabel" for="ident">البريد الإلكتروني</label>
+      <input id="ident" type="email" autocomplete="username" placeholder="example@mail.com" required>
+    </div>
+
+    <div class="switch"><button type="button" id="toggle">تسجيل بالاسم</button></div>
+
+    <div class="field">
+      <label for="pass">كلمة المرور</label>
+      <input id="pass" type="password" autocomplete="current-password" placeholder="••••••••" required>
+    </div>
+
+    <div class="msg" id="msg"></div>
+    <button class="btn primary block" id="go" type="submit">دخول</button>
+
+    <div class="divider">أو</div>
+    <a class="btn block" href="register.html">إنشاء حساب</a>
+    <a class="back" href="../index.html">← العودة للمتجر</a>
+  </form>
+</div>
+
+<script src="../js/common.js"></script>
+<script>
+let mode = "email"; // email | name
+const ident = document.getElementById("ident"),
+      label = document.getElementById("idLabel"),
+      toggle = document.getElementById("toggle"),
+      msg = document.getElementById("msg"),
+      go = document.getElementById("go");
+
+toggle.onclick = () => {
+  mode = mode === "email" ? "name" : "email";
+  ident.value = "";
+  if (mode === "email"){
+    label.textContent = "البريد الإلكتروني"; ident.type = "email"; ident.placeholder = "example@mail.com";
+    ident.autocomplete = "email"; toggle.textContent = "تسجيل بالاسم";
+  } else {
+    label.textContent = "الاسم"; ident.type = "text"; ident.placeholder = "اسم المستخدم";
+    ident.autocomplete = "username"; toggle.textContent = "تسجيل بالبريد الإلكتروني";
+  }
+  ident.focus();
+};
+
+document.getElementById("form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const val = ident.value.trim(), pass = document.getElementById("pass").value;
+  if (!val || !pass) return showMsg(msg, "أكمل جميع الحقول", "err");
+
+  go.disabled = true; showMsg(msg, "جاري التحقق...");
+  try {
+    const hash = await sha256(pass);
+    const { data, error } = await sb.from("users")
+      .select("id,name,email,country,status,password")
+      .ilike(mode, escapeLike(val));
+    if (error) throw error;
+
+    const user = (data || []).find(r => r.password === hash);
+    if (!user) { showMsg(msg, "بيانات الدخول غير صحيحة", "err"); go.disabled = false; return; }
+
+    delete user.password;
+    setUser(user);
+    showMsg(msg, "تم تسجيل الدخول ✓", "ok");
+    setTimeout(() => location.href = "../index.html", 500);
+  } catch (err) {
+    showMsg(msg, "خطأ: " + (err.message || err), "err");
+    go.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

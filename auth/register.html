@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0a0b">
+<title>إنشاء حساب | MR store</title>
+<link rel="icon" type="image/png" href="../icon.png">
+<link rel="stylesheet" href="../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="auth-wrap">
+  <form class="auth-card" id="form" novalidate>
+    <div class="logo">
+      <img src="../icon.png" alt="MR">
+      <h1>إنشاء حساب</h1>
+    </div>
+
+    <div class="field">
+      <label for="name">الاسم</label>
+      <input id="name" type="text" autocomplete="username" placeholder="اسم المستخدم" required>
+    </div>
+    <div class="field">
+      <label for="email">البريد الإلكتروني</label>
+      <input id="email" type="email" autocomplete="email" placeholder="example@mail.com" required>
+    </div>
+    <div class="field">
+      <label for="pass">كلمة المرور</label>
+      <input id="pass" type="password" autocomplete="new-password" placeholder="6 أحرف على الأقل" required>
+    </div>
+    <div class="field">
+      <label for="country">الدولة</label>
+      <select id="country"><option value="">جاري تحديد الدولة...</option></select>
+    </div>
+
+    <div class="msg" id="msg"></div>
+    <button class="btn primary block" id="go" type="submit">إنشاء الحساب</button>
+
+    <div class="divider">لديك حساب؟</div>
+    <a class="btn block" href="login.html">تسجيل الدخول</a>
+    <a class="back" href="../index.html">← العودة للمتجر</a>
+  </form>
+</div>
+
+<script src="../js/countries.js"></script>
+<script src="../js/common.js"></script>
+<script>
+const sel = document.getElementById("country"), msg = document.getElementById("msg"), go = document.getElementById("go");
+let touched = false;
+
+/* بناء القائمة: العربية أولاً ثم دول العالم */
+(function build(){
+  const { arab, world } = buildCountryLists();
+  const opt = c => `<option value="${escapeHtml(c.name)}" data-code="${c.code}">${escapeHtml(c.name)}</option>`;
+  sel.innerHTML =
+    `<optgroup label="الدول العربية">${arab.map(opt).join("")}</optgroup>` +
+    `<optgroup label="دول العالم">${world.map(opt).join("")}</optgroup>`;
+  sel.selectedIndex = -1;
+})();
+sel.addEventListener("change", () => touched = true);
+
+/* تحديد الدولة من الـ IP (إلا إذا غيّرها المستخدم يدوياً) */
+detectCountryCode().then(code => {
+  if (touched) return;
+  const o = code && sel.querySelector(`option[data-code="${code}"]`);
+  if (o) sel.value = o.value;
+  else sel.selectedIndex = 0;
+});
+
+document.getElementById("form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const name = document.getElementById("name").value.trim().replace(/\s+/g, " ");
+  const email = document.getElementById("email").value.trim().toLowerCase();
+  const pass = document.getElementById("pass").value;
+  const country = sel.value;
+
+  if (!name || !email || !pass || !country) return showMsg(msg, "أكمل جميع الحقول", "err");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showMsg(msg, "البريد الإلكتروني غير صالح", "err");
+  if (pass.length < 6) return showMsg(msg, "كلمة المرور 6 أحرف على الأقل", "err");
+
+  go.disabled = true; showMsg(msg, "جاري إنشاء الحساب...");
+  try {
+    const [byEmail, byName] = await Promise.all([
+      sb.from("users").select("id").ilike("email", escapeLike(email)).limit(1),
+      sb.from("users").select("id").ilike("name", escapeLike(name)).limit(1)
+    ]);
+    if (byEmail.error) throw byEmail.error;
+    if (byName.error) throw byName.error;
+    if (byEmail.data.length) { showMsg(msg, "هذا البريد مسجّل من قبل", "err"); go.disabled = false; return; }
+    if (byName.data.length)  { showMsg(msg, "هذا الاسم مستخدم، اختر اسماً آخر", "err"); go.disabled = false; return; }
+
+    const hash = await sha256(pass);
+    const { data, error } = await sb.from("users")
+      .insert({ name, email, country, password: hash })
+      .select("id,name,email,country,status")
+      .single();
+    if (error) throw error;
+
+    setUser(data);
+    showMsg(msg, "تم إنشاء الحساب بنجاح ✓", "ok");
+    setTimeout(() => location.href = "../index.html", 700);
+  } catch (err) {
+    showMsg(msg, "خطأ: " + (err.message || err), "err");
+    go.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
