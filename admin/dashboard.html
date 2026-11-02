@@ -1,1 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0a0a0b">
+<title>لوحة التحكم | MR store</title>
+<link rel="icon" type="image/png" href="../icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
 
+<header class="top">
+  <a class="brand" href="../index.html"><img src="../icon.png" alt="MR"><span>MR store</span><small>لوحة التحكم</small></a>
+  <span class="sp"></span>
+  <span class="who" id="who"></span>
+  <a class="btn sm" href="../index.html">المتجر</a>
+  <button class="btn sm" id="logout">خروج</button>
+</header>
+
+<div class="shell">
+  <!-- القائمة اليمنى -->
+  <nav class="nav" id="nav">
+    <button data-sec="publish" class="on">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>النشر
+    </button>
+    <button data-sec="products">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>المنتجات
+    </button>
+    <button data-sec="users">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M17 4a4 4 0 0 1 0 8M22 21c0-3-2-5-4-5.6"/></svg>الأعضاء
+    </button>
+  </nav>
+
+  <main>
+    <!-- ===== النشر ===== -->
+    <section id="sec-publish" class="card">
+      <div class="head"><h2>نشر منتج جديد</h2></div>
+      <form id="pubForm" class="pub" novalidate>
+        <div>
+          <div class="field"><label>اسم المنتج</label><input id="pTitle" maxlength="150" placeholder="مثال: سماعة لاسلكية"></div>
+          <div class="row2">
+            <div class="field"><label>السعر</label><input id="pPrice" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></div>
+            <div class="field"><label>التصنيف</label>
+              <div id="pCat">
+                <div class="catpick">
+                  <select></select>
+                  <button type="button" class="btn cat-add">+ تصنيف جديد</button>
+                </div>
+                <div class="cat-new" hidden><input maxlength="60" placeholder="اسم التصنيف الجديد"><button type="button" class="btn primary">إضافة</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="field"><label>الوصف</label><textarea id="pDesc" placeholder="اكتب وصف المنتج..."></textarea></div>
+        </div>
+        <div>
+          <div class="field"><label>صورة المنتج</label>
+            <label class="drop" id="pDrop">
+              <input type="file" id="pFile" accept="image/jpeg,image/png,image/webp,image/gif">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-8 8"/></svg>
+              <span>اضغط لاختيار صورة<br><small>JPG / PNG / WEBP — حتى 5MB</small></span>
+            </label>
+          </div>
+        </div>
+        <div style="grid-column:1/-1">
+          <div class="msg" id="pMsg"></div>
+          <button class="btn primary" id="pGo" type="submit" style="min-width:160px">نشر المنتج</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ===== المنتجات ===== -->
+    <section id="sec-products" class="card" hidden>
+      <div class="head">
+        <div><h2>المنتجات</h2><div class="sub" id="prodCount"></div></div>
+        <div class="toggle" data-for="products">
+          <button data-v="list" class="on" title="عرض أفقي" aria-label="عرض أفقي"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="3.5" rx="1.5"/><rect x="3" y="10.25" width="18" height="3.5" rx="1.5"/><rect x="3" y="16.5" width="18" height="3.5" rx="1.5"/></svg></button>
+          <button data-v="grid" title="شبكة" aria-label="شبكة"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg></button>
+        </div>
+      </div>
+      <div class="items" id="prodList"></div>
+    </section>
+
+    <!-- ===== الأعضاء ===== -->
+    <section id="sec-users" class="card" hidden>
+      <div class="head">
+        <div>
+          <h2>الأعضاء</h2>
+          <div class="chips" id="userCount"></div>
+        </div>
+        <div class="toggle" data-for="users">
+          <button data-v="list" class="on" title="عرض أفقي" aria-label="عرض أفقي"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="3.5" rx="1.5"/><rect x="3" y="10.25" width="18" height="3.5" rx="1.5"/><rect x="3" y="16.5" width="18" height="3.5" rx="1.5"/></svg></button>
+          <button data-v="grid" title="شبكة" aria-label="شبكة"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg></button>
+        </div>
+      </div>
+      <div class="items" id="userList"></div>
+    </section>
+  </main>
+</div>
+
+<!-- نافذة التعديل -->
+<div class="modal" id="editModal" hidden>
+  <form class="box" id="editForm" novalidate>
+    <h3>تعديل المنتج</h3>
+    <img class="edit-pic" id="eImg" alt="">
+    <div class="field"><label>تغيير الصورة (اختياري)</label><input type="file" id="eFile" accept="image/jpeg,image/png,image/webp,image/gif"></div>
+    <div class="field"><label>اسم المنتج</label><input id="eTitle" maxlength="150"></div>
+    <div class="row2">
+      <div class="field"><label>السعر</label><input id="ePrice" type="number" min="0" step="1" inputmode="numeric"></div>
+      <div class="field"><label>التصنيف</label>
+        <div id="eCat">
+          <div class="catpick"><select></select><button type="button" class="btn cat-add">+ جديد</button></div>
+          <div class="cat-new" hidden><input maxlength="60" placeholder="تصنيف جديد"><button type="button" class="btn primary">إضافة</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="field"><label>الوصف</label><textarea id="eDesc"></textarea></div>
+    <div class="msg" id="eMsg"></div>
+    <div class="foot">
+      <button type="button" class="btn" id="eCancel">إلغاء</button>
+      <button type="submit" class="btn primary" id="eGo">حفظ التعديلات</button>
+    </div>
+  </form>
+</div>
+
+<!-- نافذة التأكيد -->
+<div class="modal small" id="confirmModal" hidden>
+  <div class="box">
+    <h3 id="cTitle">تأكيد</h3>
+    <p id="cText" style="color:var(--muted)"></p>
+    <div class="foot">
+      <button class="btn" id="cNo">إلغاء</button>
+      <button class="btn primary" id="cYes">تأكيد</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="admin.js"></script>
+</body>
+</html>
