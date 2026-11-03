@@ -2,6 +2,9 @@
 const ICON_MAIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>';
 const ICON_HEAD = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/><path d="M19 20c0 1.5-2 2-4 2h-2"/></svg>';
 
+const ICON_LOGOUT = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3"/><path d="m16 8 4 4-4 4M20 12H9"/></svg>';
+const ICON_DASH = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>';
+
 const CHAT = {
   support: {
     title: "الدعم — اتصل بنا", ph: "اكتب رسالتك للدعم...",
@@ -53,10 +56,10 @@ function renderAuthArea(){
   if (!box) return;
   if (u){
     box.innerHTML =
-      (u.status === "admin" ? '<a class="btn primary" href="admin/dashboard.html">لوحة التحكم</a>' : "") +
+      (u.status === "admin" ? `<a class="btn primary sq" href="admin/dashboard.html" title="لوحة التحكم" aria-label="لوحة التحكم">${ICON_DASH}<span class="hide-sm">لوحة التحكم</span></a>` : "") +
       `<button class="icon-btn" id="msgBtn" title="الرسائل" aria-label="الرسائل">${ICON_MAIL}<span class="badge-red" id="msgBadge" hidden></span></button>
-       <div class="user-chip"><span class="hide-sm">أهلاً</span> <b>${escapeHtml(u.name)}</b></div>
-       <button class="btn" id="logoutBtn">خروج</button>`;
+       <div class="user-chip" title="${escapeHtml(u.name)}"><span class="hide-sm">أهلاً</span> <b class="u-name">${escapeHtml(u.name)}</b><span class="u-circle">${escapeHtml(String(u.name || "?").trim().charAt(0).toUpperCase())}</span></div>
+       <button class="btn sq" id="logoutBtn" title="خروج" aria-label="خروج">${ICON_LOGOUT}<span class="hide-sm">خروج</span></button>`;
     document.getElementById("logoutBtn").onclick = logout;
     document.getElementById("msgBtn").onclick = () => openChat("message");
   } else {
