@@ -201,3 +201,24 @@ body::before{
 .linkbtn{background:none;border:0;color:var(--silver);text-decoration:underline;cursor:pointer;font-size:.85rem;padding:0}
 .linkbtn:hover{color:#fff}
 .btn.block{width:100%;padding:12px}
+
+/* ====== شاشات الهاتف الضيقة (خصوصاً مع حساب أدمن): صف واحد للعناصر + صف للبحث ====== */
+@media (max-width:480px){
+  .header-in{padding:8px 10px;gap:6px}
+  .menu-btn{width:34px;height:34px;font-size:1.05rem;border-radius:9px;flex-shrink:0}
+  .brand{gap:6px;min-width:0;flex-shrink:1}
+  .brand img{width:30px;height:30px}
+  .brand span{font-size:.9rem;letter-spacing:0;overflow:hidden;text-overflow:ellipsis}
+  .auth-area{gap:4px;flex-shrink:0}
+  .auth-area .btn.sq,.auth-area .icon-btn{width:34px;height:34px;border-radius:9px}
+  .auth-area .btn .ic,.auth-area .icon-btn svg{width:17px;height:17px}
+  .u-circle{width:32px;height:32px;font-size:.9rem}
+  .badge-red{top:-6px;left:-6px;min-width:17px;height:17px;line-height:17px;font-size:.65rem;padding:0 4px}
+  .auth-area .btn:not(.sq){padding:6px 9px;font-size:.8rem}   /* Login / Sign up عند عدم تسجيل الدخول */
+  .search input{padding-block:9px}
+}
+@media (max-width:340px){
+  .header-in{gap:4px;padding-inline:6px}
+  .brand img{display:none}
+  .auth-area{gap:3px}
+}
