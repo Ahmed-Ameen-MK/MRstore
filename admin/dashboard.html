@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#0a0a0b">
-<title>لوحة التحكم | MR store</title>
+<title>لوحة التحكم | MR STORE</title>
 <link rel="icon" type="image/png" href="../icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,7 +17,7 @@
 
 <header class="top">
   <button class="menu-toggle" id="menuToggle" aria-label="القائمة">☰</button>
-  <a class="brand" href="../index.html"><img src="../icon.png" alt="MR"><span>MR store</span><small>لوحة التحكم</small></a>
+  <a class="brand" href="../index.html"><img src="../icon.png" alt="MR"><span>MR STORE</span><small>لوحة التحكم</small></a>
   <span class="sp"></span>
   <span class="who" id="who"></span>
   <a class="btn sm" href="../index.html">المتجر</a>
@@ -41,6 +41,9 @@
     </button>
     <button data-sec="news">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h13v14H6a2 2 0 0 1-2-2V5Z"/><path d="M17 9h3v8a2 2 0 0 1-2 2M7 9h6M7 13h6"/></svg>الأخبار
+    </button>
+    <button data-sec="payments">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20M6 15h4"/></svg>عمليات الدفع<span class="nb" id="payBadge" hidden></span>
     </button>
   </nav>
   <div class="nav-overlay" id="navOverlay"></div>
@@ -131,6 +134,14 @@
       </div>
       <div class="items" id="newsList"></div>
     </section>
+
+    <!-- ===== عمليات الدفع ===== -->
+    <section id="sec-payments" class="card" hidden>
+      <div class="head">
+        <div><h2>عمليات الدفع</h2><div class="sub" id="payCount"></div></div>
+      </div>
+      <div class="items" id="payList"></div>
+    </section>
   </main>
 </div>
 
@@ -169,6 +180,20 @@
       <button type="submit" class="btn primary" id="eGo">حفظ التعديلات</button>
     </div>
   </form>
+</div>
+
+<!-- نافذة حالة الدفع -->
+<div class="modal small" id="payModal" hidden>
+  <div class="box">
+    <h3>حالة الدفع</h3>
+    <p id="pmInfo" style="color:var(--muted);line-height:1.8"></p>
+    <p style="margin-top:10px">اكتب حالة الدفع</p>
+    <div class="pm-actions">
+      <button class="btn ok" id="pmGreen">تم التحقق</button>
+      <button class="btn danger" id="pmRed">لم يكتمل</button>
+      <button class="btn" id="pmClose">إغلاق</button>
+    </div>
+  </div>
 </div>
 
 <!-- نافذة التأكيد -->
@@ -213,5 +238,6 @@
 <script src="admin.js"></script>
 <script src="inbox.js"></script>
 <script src="news.js"></script>
+<script src="payments.js"></script>
 </body>
 </html>

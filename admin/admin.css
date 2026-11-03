@@ -242,3 +242,23 @@ main{flex:1;min-width:0}
 .rd .bar i{display:block;height:100%;background:linear-gradient(90deg,#f0c24b,#e6a935);border-radius:999px}
 .rd em{width:26px;font-style:normal}
 @media (max-width:560px){.tabs button{padding:8px 12px;font-size:.88rem}.rate-sum{gap:14px}}
+
+/* ---------- drop zone: النص في المنتصف رأسياً ---------- */
+.field>label.drop{display:flex;margin-bottom:0;color:var(--muted);font-size:inherit}
+.drop span{text-align:center;line-height:1.7}
+
+/* ---------- Payments ---------- */
+.item.pay{cursor:pointer}
+.item.pay.none{border-color:#a9acb4;background:linear-gradient(180deg,#2c2e34,#1d1e22);box-shadow:0 0 0 1px rgba(255,255,255,.08) inset,0 0 22px rgba(255,255,255,.10)}
+.item.pay.none h4{color:#fff;font-weight:800}
+.item.pay.green,.item.pay.red{opacity:.8}
+.item.pay:hover{opacity:1}
+.dot.g{background:var(--ok);box-shadow:0 0 10px rgba(89,217,142,.8)}
+.dot.r{background:var(--danger);box-shadow:0 0 10px rgba(255,107,107,.8)}
+.item.pay.none .dot{animation:pulseDot 1.6s ease-in-out infinite}
+@keyframes pulseDot{50%{transform:scale(1.35);opacity:.6}}
+.st.none{color:var(--silver);border-color:#8b8e96}
+.st.green{color:var(--ok);border-color:#235a3a}
+.st.red{color:var(--danger);border-color:#5a2a2e}
+.pm-actions{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.pm-actions .btn{padding:12px}

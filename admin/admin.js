@@ -109,11 +109,12 @@ function showSection(name){
   document.querySelectorAll("[data-sec]").forEach(b => b.classList.toggle("on", b.dataset.sec === name));
   closeDrawer();
   window.scrollTo({ top: 0 });
-  ["publish", "products", "users", "inbox", "news"].forEach(s => $("#sec-" + s).hidden = s !== name);
+  ["publish", "products", "users", "inbox", "news", "payments"].forEach(s => $("#sec-" + s).hidden = s !== name);
   if (name === "users") loadUsers();
   if (name === "products") renderProducts();
   if (name === "inbox") loadInbox();
   if (name === "news") loadNewsAdmin();
+  if (name === "payments") loadPayments();
 }
 
 function closeDrawer(){ $("#nav").classList.remove("open"); $("#navOverlay").classList.remove("show"); }
@@ -321,7 +322,7 @@ function init(){
     const c = document.createElement("button");
     c.dataset.sec = b.dataset.sec; c.setAttribute("aria-label", b.textContent.trim());
     if (b.classList.contains("on")) c.classList.add("on");
-    c.innerHTML = b.querySelector("svg").outerHTML + (b.dataset.sec === "inbox" ? '<span class="nb" id="inboxBadgeM" hidden></span>' : "");
+    c.innerHTML = b.querySelector("svg").outerHTML + (b.dataset.sec === "inbox" ? '<span class="nb" id="inboxBadgeM" hidden></span>' : b.dataset.sec === "payments" ? '<span class="nb" id="payBadgeM" hidden></span>' : "");
     bn.appendChild(c);
   });
   bn.addEventListener("click", go);
@@ -330,5 +331,6 @@ function init(){
   $("#navOverlay").onclick = closeDrawer;
   loadProducts();
   loadInbox(true);
+  loadPayments(true);
   setInterval(() => { if (!document.hidden) loadInbox(!$("#sec-inbox") || $("#sec-inbox").hidden); }, 60000);
 }
