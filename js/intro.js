@@ -5,6 +5,8 @@ const INTRO_PHRASES = ["متجر MR store", "الثقة تكتسب", "نحن ا�
 (function runIntro(){
   const el = document.getElementById("intro");
   if (!el) return;
+  // نفس الجلسة: الشاشة مخفية بالـCSS، فلا نشغّل الأنيميشن ولا نقفل السكرول
+  if (document.documentElement.classList.contains("no-intro")){ el.remove(); return; }
   const txt = document.getElementById("introText");
   if (INTRO_ONCE) { try { sessionStorage.setItem("mr_intro", "1"); } catch {} }
   document.body.style.overflow = "hidden";
