@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0a0b">
+<title>تفاصيل المنتج | MR store</title>
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/home.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<header class="header">
+  <div class="header-in">
+    <a href="index.html" class="brand"><img src="icon.png" alt="MR"><span>MR store</span></a>
+    <span class="sp"></span>
+    <div class="auth-area" id="authArea"></div>
+  </div>
+</header>
+
+<div id="view"><div class="dt"><div class="skeleton" style="aspect-ratio:1/1;height:auto"></div><div class="skeleton" style="height:320px"></div></div></div>
+
+<script src="js/common.js"></script>
+<script src="js/site.js"></script>
+<script>
+const view = document.getElementById("view");
+const param = new URLSearchParams(location.search).get("title") || "";
+
+function notFound(msg){
+  view.innerHTML = `<div class="dt" style="grid-template-columns:1fr"><div class="empty">${msg}<br><br><a class="btn primary" href="index.html">العودة إلى المتجر</a></div></div>`;
+}
+
+function relCard(p){
+  return `<a class="card glass tilt reveal" href="details.html?title=${encodeURIComponent(slug(p.title))}">
+    <div class="thumb"><img loading="lazy" src="${escapeHtml(p.avatar_url || "icon.png")}" alt="${escapeHtml(p.title)}" onerror="this.src='icon.png'"></div>
+    <div class="info"><h4>${escapeHtml(p.title)}</h4><div class="price">${escapeHtml(p.price)} ${CURRENCY}</div></div></a>`;
+}
+
+(async function(){
+  initSite();
+  if (!param) return notFound("لم يتم تحديد المنتج.");
+  const { data, error } = await sb.from("store").select("*").order("id", { ascending: false });
+  if (error) return notFound("تعذر تحميل المنتج: " + escapeHtml(error.message));
+  const key = slug(param);
+  const p = (data || []).find(x => slug(x.title) === key);
+  if (!p) return notFound("هذا المنتج غير موجود أو تم حذفه.");
+
+  document.title = p.title + " | MR store";
+  const cat = String(p.category ?? "").trim() || "غير مصنف";
+  const rel = (data || []).filter(x => x.id !== p.id && (String(x.category ?? "").trim() || "غير مصنف") === cat).slice(0, 4);
+
+  view.innerHTML = `
+    <div class="crumb"><a href="index.html">المتجر</a> / <span>${escapeHtml(cat)}</span> / <span>${escapeHtml(p.title)}</span></div>
+    <div class="dt">
+      <div class="dt-img glass reveal"><img src="${escapeHtml(p.avatar_url || "icon.png")}" alt="${escapeHtml(p.title)}" onerror="this.src='icon.png'"></div>
+      <div class="dt-info reveal">
+        <span class="tagc" style="align-self:flex-start;background:rgba(10,10,11,.7);border:1px solid var(--line);color:var(--silver);padding:2px 12px;border-radius:999px;font-size:.8rem">${escapeHtml(cat)}</span>
+        <h1>${escapeHtml(p.title)}</h1>
+        <div class="price">${escapeHtml(p.price)} ${CURRENCY}</div>
+        <div class="desc">${escapeHtml(p.description)}</div>
+        <div class="dt-btns">
+          <button class="btn primary" id="orderBtn">اطلب الآن</button>
+          <a class="btn" href="index.html">متابعة التسوق</a>
+        </div>
+      </div>
+    </div>
+    ${rel.length ? `<section class="related"><h2 class="sec-title">منتجات مشابهة</h2><div class="grid">${rel.map(relCard).join("")}</div></section>` : ""}`;
+  observeReveal(view);
+
+  // "اطلب الآن" يفتح نافذة الدعم برسالة جاهزة عن هذا المنتج
+  document.getElementById("orderBtn").onclick = async () => {
+    await openChat("support");
+    const t = document.getElementById("chatTxt");
+    if (t && !t.value) t.value = `مرحباً، أرغب في طلب المنتج: ${p.title} (${p.price} ${CURRENCY})`;
+  };
+})();
+</script>
+</body>
+</html>

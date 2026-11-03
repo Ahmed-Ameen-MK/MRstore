@@ -11,15 +11,22 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/home.css">
 <script>try{if(sessionStorage.getItem("mr_intro"))document.documentElement.classList.add("no-intro")}catch(e){}</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
 <div id="intro" aria-label="MR store">
-  <img src="icon.png" alt="MR store">
+  <div class="intro-bg"></div>
+  <img class="intro-logo" src="icon.png" alt="MR store" draggable="false">
   <div class="typed"><span id="introText"></span><span class="caret"></span></div>
-  <div class="skip-hint">اضغط للتخطي</div>
+  <button type="button" class="skip-btn" id="introSkip">تخطي</button>
+</div>
+
+<div class="newsbar" id="newsBar" hidden>
+  <div class="nb-viewport" id="nbView"><div class="nb-track" id="nbTrack"></div></div>
+  <button class="nb-x" id="nbClose" aria-label="إغلاق الشريط">×</button>
 </div>
 
 <header class="header">
@@ -45,104 +52,38 @@
   </aside>
 
   <main class="content">
-    <div class="bar">
-      <h2 id="title">كل المنتجات</h2>
-      <span class="count" id="count"></span>
-    </div>
-    <div class="grid" id="grid">
-      <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
-    </div>
+    <section id="secAll">
+      <div class="bar">
+        <h2 id="title">كل المنتجات</h2>
+        <span class="count" id="count"></span>
+      </div>
+      <div class="grid" id="grid">
+        <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+      </div>
+      <div class="more-wrap" id="moreWrap" hidden><button class="btn" id="moreBtn">عرض المزيد</button></div>
+    </section>
+
+    <section class="home-sec" id="secSlider" hidden>
+      <h2 class="sec-title">عرض مميز</h2>
+      <div class="slider" id="slider"></div>
+      <div class="dots" id="dots"></div>
+    </section>
+
+    <section class="home-sec" id="secRandom" hidden>
+      <h2 class="sec-title">منتجات مختارة لك</h2>
+      <div class="grid" id="randGrid"></div>
+    </section>
   </main>
+</div>
+
+<div class="p-actions" id="pActions">
+  <a href="details.html" aria-label="عرض التفاصيل" title="عرض"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></a>
+  <a href="details.html" aria-label="شراء" title="شراء"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.2l2.2 11h9.6l2-8H6.3"/><circle cx="9.5" cy="19.5" r="1.4"/><circle cx="16.5" cy="19.5" r="1.4"/></svg></a>
 </div>
 
 <script src="js/common.js"></script>
 <script src="js/site.js"></script>
-<script>
-const MAX_WORDS = 12;          // أقصى عدد كلمات للوصف قبل ...
-const ALL = "__all__";
-let products = [];
-let state = { cat: ALL, q: "" };
-
-/* ---------- المنتجات ---------- */
-function shortDesc(t){
-  const words = String(t ?? "").trim().split(/\s+/).filter(Boolean);
-  return words.length > MAX_WORDS ? words.slice(0, MAX_WORDS).join(" ") + " ..." : words.join(" ");
-}
-
-function catKey(p){ return String(p.category ?? "").trim() || "غير مصنف"; }
-
-function renderCats(){
-  const map = new Map();
-  products.forEach(p => { const k = catKey(p); map.set(k, (map.get(k) || 0) + 1); });
-  const names = [...map.keys()].sort((a,b)=>a.localeCompare(b,"ar"));
-  const box = document.getElementById("cats");
-  box.innerHTML =
-    `<button class="cat ${state.cat===ALL?"active":""}" data-c="${ALL}">الكل <small>${products.length}</small></button>` +
-    names.map(n => `<button class="cat ${state.cat===n?"active":""}" data-c="${escapeHtml(n)}">${escapeHtml(n)} <small>${map.get(n)}</small></button>`).join("");
-  box.querySelectorAll(".cat").forEach(b => b.onclick = () => {
-    state.cat = b.dataset.c;
-    renderCats(); renderProducts(); closeMenu();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  });
-}
-
-function matches(p){
-  if (state.cat !== ALL && catKey(p) !== state.cat) return false;
-  const q = norm(state.q);
-  if (!q) return true;
-  // البحث في "كل" خانات الصف
-  return Object.values(p).some(v => norm(v).includes(q));
-}
-
-function renderProducts(){
-  const list = products.filter(matches);
-  const grid = document.getElementById("grid");
-  document.getElementById("title").textContent = state.cat === ALL ? "كل المنتجات" : state.cat;
-  document.getElementById("count").textContent = list.length + " منتج";
-  if (!list.length){
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1">لا توجد منتجات مطابقة</div>`;
-    return;
-  }
-  grid.innerHTML = list.map(p => `
-    <article class="card">
-      <div class="thumb">
-        <img loading="lazy" src="${escapeHtml(p.avatar_url || "icon.png")}" alt="${escapeHtml(p.title)}" onerror="this.src='icon.png'">
-        <span class="badge">${escapeHtml(catKey(p))}</span>
-      </div>
-      <div class="info">
-        <h4>${escapeHtml(p.title)}</h4>
-        <p>${escapeHtml(shortDesc(p.description))}</p>
-        <div class="price">${escapeHtml(p.price)} ${CURRENCY}</div>
-      </div>
-    </article>`).join("");
-}
-
-async function load(){
-  const { data, error } = await sb.from("store").select("*").order("id", { ascending: false });
-  if (error){
-    document.getElementById("grid").innerHTML = `<div class="empty" style="grid-column:1/-1">تعذر تحميل المنتجات: ${escapeHtml(error.message)}</div>`;
-    return;
-  }
-  products = data || [];
-  renderCats(); renderProducts();
-}
-
-/* ---------- البحث ---------- */
-let t;
-document.getElementById("q").addEventListener("input", e => {
-  clearTimeout(t);
-  t = setTimeout(() => { state.q = e.target.value; renderProducts(); }, 120);
-});
-
-/* ---------- القائمة الجانبية للجوال ---------- */
-const sidebar = document.getElementById("sidebar"), overlay = document.getElementById("overlay");
-function closeMenu(){ sidebar.classList.remove("open"); overlay.classList.remove("show"); }
-document.getElementById("menuBtn").onclick = () => { sidebar.classList.add("open"); overlay.classList.add("show"); };
-overlay.onclick = closeMenu;
-
-initSite();   // الهيدر + زر الدعم + الفوتر + الإشعارات
-load();
-</script>
+<script src="js/home.js"></script>
 <script src="js/intro.js"></script>
 </body>
 </html>
