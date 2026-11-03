@@ -62,12 +62,23 @@
 
 /* الفوتر */
 .site-footer{
-  margin-top:34px;border-top:1px solid var(--line);background:linear-gradient(180deg,#0f0f11,#0a0a0b);
-  padding:24px 16px 96px;text-align:center
+  margin-top:40px;border-top:1px solid var(--line);background:linear-gradient(180deg,#0f0f11,#0a0a0b);
+  padding:26px 18px 96px
 }
-.site-footer .links{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
-.site-footer .btn.on{border-color:var(--silver);background:var(--panel2)}
-.site-footer p{color:var(--muted);font-size:.85rem}
+.foot-in{max-width:1400px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:18px 30px;flex-wrap:wrap}
+.foot-links{display:flex;gap:22px;flex-wrap:wrap}
+.foot-links a{color:var(--muted);font-size:.95rem;transition:color .15s;padding:4px 0}
+.foot-links a:hover,.foot-links a.on{color:#fff}
+.dev{
+  direction:ltr;unicode-bidi:isolate;font-size:1rem;color:var(--silver);min-height:2rem;display:flex;align-items:center;
+  white-space:pre;letter-spacing:.3px
+}
+.dev .nine{display:inline-block;color:#fff;font-weight:800;transform-origin:50% 60%;transition:transform .55s cubic-bezier(.34,1.56,.64,1),text-shadow .55s}
+.dev .nine.pop{transform:scale(2.3);text-shadow:0 0 18px rgba(255,255,255,.65)}
+.caret2{display:inline-block;width:2px;height:1.2em;background:var(--silver);margin-inline-start:3px;animation:blink .8s steps(1) infinite}
+.copy{max-width:1400px;margin:16px auto 0;color:#6d7078;font-size:.8rem}
+@media (max-width:640px){.foot-in{flex-direction:column-reverse;align-items:center;text-align:center}.foot-links{justify-content:center}.copy{text-align:center}}
+@keyframes blink{50%{opacity:0}}
 
 /* صفحات: الخصوصية / الشروط / عن المتجر */
 .hero{
@@ -105,3 +116,47 @@
 .star.on{color:#f0c24b;text-shadow:0 0 14px rgba(240,194,75,.45)}
 .star:hover{transform:scale(1.15)}
 .star:disabled{cursor:not-allowed;opacity:.5}
+
+/* ====== مؤثرات حديثة: زجاج + انكسار ضوء + ظهور تدريجي ====== */
+body::before{
+  content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;opacity:.55;
+  background:
+    radial-gradient(40% 35% at 20% 25%,rgba(180,186,200,.10),transparent 70%),
+    radial-gradient(35% 40% at 80% 70%,rgba(140,146,160,.10),transparent 70%);
+  animation:aurora 22s ease-in-out infinite alternate;
+}
+@keyframes aurora{to{transform:translate3d(4%,-3%,0) rotate(6deg) scale(1.08)}}
+
+.header{background:rgba(15,15,17,.62)!important;-webkit-backdrop-filter:blur(18px) saturate(170%);backdrop-filter:blur(18px) saturate(170%);border-bottom-color:rgba(255,255,255,.08)}
+.sidebar{background:rgba(18,18,20,.6);-webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%)}
+
+/* لمعة تتبع المؤشر (انكسار الزجاج) */
+.glass{position:relative;isolation:isolate}
+.glass::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;opacity:0;transition:opacity .3s;
+  background:radial-gradient(260px circle at var(--mx,50%) var(--my,0%),rgba(255,255,255,.20),rgba(255,255,255,.05) 40%,transparent 65%);
+  mix-blend-mode:screen
+}
+.glass:hover::after{opacity:1}
+
+/* ظهور تدريجي: يبدأ مموّهاً ثم يتضح */
+.reveal{opacity:0;transform:translateY(26px) scale(.98);filter:blur(10px);
+  transition:opacity .7s cubic-bezier(.2,.7,.2,1) var(--d,0ms),transform .7s cubic-bezier(.2,.7,.2,1) var(--d,0ms),filter .7s ease var(--d,0ms)}
+.reveal.in{opacity:1;transform:none;filter:none}
+
+/* لمعة تمرّ على الأزرار */
+.btn{position:relative;overflow:hidden}
+.btn::before{
+  content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.28),transparent);transform:skewX(-20deg);transition:left .6s
+}
+.btn:hover::before{left:120%}
+.btn:active{transform:scale(.97)}
+.modal,.m-back{-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.m-box{animation:popIn .3s cubic-bezier(.2,.8,.3,1.2)}
+@keyframes popIn{from{opacity:0;transform:translateY(14px) scale(.96)}}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  .reveal{opacity:1;transform:none;filter:none}
+}

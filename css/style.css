@@ -183,22 +183,38 @@ img{max-width:100%;display:block}
 
 /* ---------- Intro / loading screen ---------- */
 #intro{
-  position:fixed;inset:0;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;
-  background:radial-gradient(800px 500px at 50% 40%,#202126,#060607 70%);
-  transition:opacity .6s,visibility .6s;cursor:pointer;
+  position:fixed;inset:0;z-index:999;overflow:hidden;background:#050506;
+  transition:opacity .6s,visibility .6s;
+  -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;
+  -webkit-user-select:none;user-select:none;cursor:default;
 }
 #intro.hide{opacity:0;visibility:hidden}
 .no-intro #intro{display:none}
-#intro img{
-  width:150px;height:150px;border-radius:50%;
-  box-shadow:0 0 60px rgba(200,204,212,.22);animation:pulse 2.4s ease-in-out infinite;
+/* الخلفية: كاملة الوضوح بالأعلى وتتلاشى حتى منتصف الشاشة (مركز الأيقونة) */
+#intro .intro-bg{
+  position:absolute;inset:0;background:url("../background.png") center top/cover no-repeat;pointer-events:none;
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.85) 18%,transparent 50%);
+          mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.85) 18%,transparent 50%);
 }
-.typed{display:flex;align-items:center;justify-content:center;min-height:3rem;direction:rtl}
+/* الأيقونة ثابتة تماماً في المنتصف */
+#intro .intro-logo{
+  position:absolute;top:50%;left:50%;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;
+  box-shadow:0 0 60px rgba(200,204,212,.18);pointer-events:none;-webkit-user-drag:none;
+}
+.typed{
+  position:absolute;top:calc(50% + 100px);left:0;right:0;display:flex;align-items:center;justify-content:center;
+  min-height:3rem;direction:rtl;pointer-events:none;padding:0 16px;
+}
 #introText{
   font-size:clamp(1.5rem,5vw,2.4rem);font-weight:800;letter-spacing:.5px;
   background:linear-gradient(180deg,#fff,#9ea1a8);-webkit-background-clip:text;background-clip:text;color:transparent;
 }
 .caret{display:inline-block;width:3px;height:1.6em;background:var(--silver);margin-inline-start:6px;animation:blink .8s steps(1) infinite}
-.skip-hint{position:absolute;bottom:22px;color:var(--muted);font-size:.8rem;opacity:.7}
+/* زر التخطي: التخطي يتم من هنا فقط (مساحة لمس واسعة حوله) */
+.skip-btn{
+  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);padding:18px 38px;
+  background:none;border:0;color:var(--muted);font:inherit;font-size:.95rem;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;transition:color .15s;
+}
+.skip-btn:hover,.skip-btn:active{color:#fff}
 @keyframes blink{50%{opacity:0}}
-@keyframes pulse{50%{transform:scale(1.04);box-shadow:0 0 80px rgba(200,204,212,.35)}}
