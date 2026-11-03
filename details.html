@@ -64,7 +64,7 @@ function relCard(p){
         <div class="price">${escapeHtml(p.price)} ${CURRENCY}</div>
         <div class="desc">${escapeHtml(p.description)}</div>
         <div class="dt-btns">
-          <button class="btn primary" id="orderBtn">اطلب الآن</button>
+          <button class="btn primary" id="buyBtn">شراء</button>
           <a class="btn" href="index.html">متابعة التسوق</a>
         </div>
       </div>
@@ -72,12 +72,69 @@ function relCard(p){
     ${rel.length ? `<section class="related"><h2 class="sec-title">منتجات مشابهة</h2><div class="grid">${rel.map(relCard).join("")}</div></section>` : ""}`;
   observeReveal(view);
 
-  // "اطلب الآن" يفتح نافذة الدعم برسالة جاهزة عن هذا المنتج
-  document.getElementById("orderBtn").onclick = async () => {
-    await openChat("support");
-    const t = document.getElementById("chatTxt");
-    if (t && !t.value) t.value = `مرحباً، أرغب في طلب المنتج: ${p.title} (${p.price} ${CURRENCY})`;
+  /* ====== الشراء ====== */
+  const ZIINA = "https://pay.ziina.com/ar/N7311", DISCORD = "https://discord.gg/mrr";
+  const payKey = "mr_pay_" + p.id;
+  const isPaid = () => { try { return !!localStorage.getItem(payKey); } catch { return false; } };
+  const setPaid = v => { try { v ? localStorage.setItem(payKey, String(Date.now())) : localStorage.removeItem(payKey); } catch {} };
+  const logo = (file, alt) => `<img src="img/${file}" alt="${alt}" onerror="this.replaceWith(document.createTextNode('${alt}'))">`;
+
+  function showSteps(paid){
+    const back = modal("كيفية الشراء", `
+      <div class="pstep ${paid ? "wait" : "cur"}">
+        <div class="pnum">${paid ? "⏳" : "1"}</div>
+        <div class="pbody">
+          <h4>التوجه للدفع</h4>
+          ${paid
+            ? '<p>بانتظار التحقق من الدفع... يمكنك الآن الانتقال للخطوة التالية.</p><button type="button" class="linkbtn" id="payRetry">لم يكتمل الدفع؟ أعد المحاولة</button>'
+            : `<p>ادفع قيمة المنتج بأمان عبر Ziina.</p>
+               <button type="button" class="btn primary block pay-ziina" id="payBtn"><span>دفع باستخدام Ziina</span><span class="logos">${logo("ziina.png", "Ziina")}${logo("gpay.png", "Google Pay")}${logo("applepay.png", "Apple Pay")}</span></button>
+               <div class="msg" id="payMsg" style="margin:8px 0 0"></div>`}
+        </div>
+      </div>
+      <div class="pstep ${paid ? "cur" : "lock"}">
+        <div class="pnum">2</div>
+        <div class="pbody">
+          <h4>استلام المنتج</h4>
+          <p>توجه إلى متجرنا على ديسكورد وافتح تذكرة استلام منتج.</p>
+          ${paid ? `<a class="btn primary block" href="${DISCORD}" target="_blank" rel="noopener">فتح تذكرة منتج</a>` : '<button type="button" class="btn block" disabled>فتح تذكرة منتج</button>'}
+        </div>
+      </div>`);
+    const payBtn = back.querySelector("#payBtn"), retry = back.querySelector("#payRetry");
+    if (payBtn) payBtn.onclick = async () => {
+      const msg = back.querySelector("#payMsg");
+      payBtn.disabled = true; showMsg(msg, "جاري تسجيل العملية...");
+      try {
+        await rpcUser("mr_create_payment", { p_product: p.title });   // يسجل صفاً جديداً status = none
+        setPaid(true);
+        try { sessionStorage.setItem("mr_pay_ret", String(p.id)); } catch {}
+        location.href = ZIINA;
+      } catch (e) {
+        showMsg(msg, "تعذر بدء الدفع: " + (e.message || e), "err");
+        payBtn.disabled = false;
+      }
+    };
+    if (retry) retry.onclick = () => { setPaid(false); showSteps(false); };
+  }
+
+  document.getElementById("buyBtn").onclick = () => {
+    const u = getUser();
+    if (!u || !u.h){
+      modal("شراء", `<div class="chat-empty">سجّل الدخول لإتمام عملية الشراء.<br>
+        <a class="btn primary" href="auth/login.html">تسجيل الدخول</a> <a class="btn" href="auth/register.html">إنشاء حساب</a></div>`);
+      return;
+    }
+    if (isPaid()) return showSteps(true);
+    const back = modal("شراء", '<div class="chat-empty" style="font-size:1.05rem;color:var(--text)">هل تريد إتمام الدفع؟</div>',
+      '<div class="row" style="margin-top:0"><button type="button" class="btn" id="buyNo">لا</button><button type="button" class="btn primary" id="buyYes">نعم</button></div>');
+    back.querySelector("#buyNo").onclick = closeModal;
+    back.querySelector("#buyYes").onclick = () => showSteps(false);
   };
+
+  /* الرجوع من صفحة الدفع: المرحلة الأولى ⏳ وتُفتح الثانية */
+  const returned = () => { try { const v = sessionStorage.getItem("mr_pay_ret") === String(p.id); if (v) sessionStorage.removeItem("mr_pay_ret"); return v; } catch { return false; } };
+  if (isPaid() && returned()) showSteps(true);
+  addEventListener("pageshow", e => { if (e.persisted && isPaid() && returned()) showSteps(true); });
 })();
 </script>
 </body>
