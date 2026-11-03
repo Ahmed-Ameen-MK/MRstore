@@ -1,7 +1,7 @@
 /* ====== لوحة الأدمن — ملف مستقل بالكامل داخل مجلد admin ====== */
 const SUPABASE_URL = "https://cjjybcsrtbcjmnavyyph.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqanliY3NydGJjam1uYXZ5eXBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MDM4OTMsImV4cCI6MjEwOTE3OTg5M30.o9CxuojKekGe7bVtO5h-Xzs6l7ATza4_IK85scEW228";
-const CURRENCY = "$";
+const CURRENCY = "درهم إماراتي";
 const BUCKET = "products";
 const MAX_IMG = 5 * 1024 * 1024;
 
@@ -31,6 +31,8 @@ async function admin(fn, args = {}){
     const { data, error } = await sb.rpc("mr_is_admin", { p_email: me.email, p_hash: me.h });
     if (error || data !== true) return deny();
   } catch { return deny(); }
+  // ننتظر تحميل بقية ملفات اللوحة (inbox.js / news.js) قبل التشغيل
+  if (document.readyState !== "complete") await new Promise(r => addEventListener("load", r, { once: true }));
   document.documentElement.classList.add("ready");
   init();
 })();
@@ -104,12 +106,17 @@ async function uploadImage(file){
 
 /* ---------- التنقل ---------- */
 function showSection(name){
-  document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("on", b.dataset.sec === name));
-  ["publish", "products", "users", "inbox"].forEach(s => $("#sec-" + s).hidden = s !== name);
+  document.querySelectorAll("[data-sec]").forEach(b => b.classList.toggle("on", b.dataset.sec === name));
+  closeDrawer();
+  window.scrollTo({ top: 0 });
+  ["publish", "products", "users", "inbox", "news"].forEach(s => $("#sec-" + s).hidden = s !== name);
   if (name === "users") loadUsers();
   if (name === "products") renderProducts();
   if (name === "inbox") loadInbox();
+  if (name === "news") loadNewsAdmin();
 }
+
+function closeDrawer(){ $("#nav").classList.remove("open"); $("#navOverlay").classList.remove("show"); }
 
 /* ---------- المنتجات ---------- */
 async function loadProducts(){
@@ -306,7 +313,21 @@ document.querySelectorAll(".toggle").forEach(t => t.addEventListener("click", e 
 function init(){
   $("#who").textContent = "مرحباً، " + me.name;
   $("#logout").onclick = () => { localStorage.removeItem("mr_user"); location.replace("../index.html"); };
-  $("#nav").addEventListener("click", e => { const b = e.target.closest("button"); if (b) showSection(b.dataset.sec); });
+  const go = e => { const b = e.target.closest("[data-sec]"); if (b) showSection(b.dataset.sec); };
+  $("#nav").addEventListener("click", go);
+  // بار سفلي للموبايل: أيقونات الأقسام فقط
+  const bn = $("#bnav");
+  [...$("#nav").querySelectorAll("[data-sec]")].forEach(b => {
+    const c = document.createElement("button");
+    c.dataset.sec = b.dataset.sec; c.setAttribute("aria-label", b.textContent.trim());
+    if (b.classList.contains("on")) c.classList.add("on");
+    c.innerHTML = b.querySelector("svg").outerHTML + (b.dataset.sec === "inbox" ? '<span class="nb" id="inboxBadgeM" hidden></span>' : "");
+    bn.appendChild(c);
+  });
+  bn.addEventListener("click", go);
+  // زر ☰: قائمة جانبية بالأقسام مع أسمائها
+  $("#menuToggle").onclick = () => { $("#nav").classList.add("open"); $("#navOverlay").classList.add("show"); };
+  $("#navOverlay").onclick = closeDrawer;
   loadProducts();
   loadInbox(true);
   setInterval(() => { if (!document.hidden) loadInbox(!$("#sec-inbox") || $("#sec-inbox").hidden); }, 60000);

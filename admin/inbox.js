@@ -19,7 +19,7 @@ async function loadInbox(silent){
 function unreadIncoming(type){ return inboxRows.filter(r => isIncoming(r) && r.type === type && r.seen !== "done"); }
 function updateInboxBadge(){
   const n = unreadIncoming("message").length + unreadIncoming("support").length;
-  const b = $("#inboxBadge"); b.textContent = n > 99 ? "99+" : n; b.hidden = n === 0;
+  ["#inboxBadge", "#inboxBadgeM"].forEach(id => { const b = $(id); if (b){ b.textContent = n > 99 ? "99+" : n; b.hidden = n === 0; } });
   [["message", "tabMsgN"], ["support", "tabSupN"]].forEach(([t, id]) => {
     const c = unreadIncoming(t).length, el = $("#" + id);
     el.textContent = c; el.hidden = c === 0;

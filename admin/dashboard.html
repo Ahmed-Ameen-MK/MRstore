@@ -16,6 +16,7 @@
 <body>
 
 <header class="top">
+  <button class="menu-toggle" id="menuToggle" aria-label="القائمة">☰</button>
   <a class="brand" href="../index.html"><img src="../icon.png" alt="MR"><span>MR store</span><small>لوحة التحكم</small></a>
   <span class="sp"></span>
   <span class="who" id="who"></span>
@@ -38,7 +39,11 @@
     <button data-sec="inbox">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>الرسائل<span class="nb" id="inboxBadge" hidden></span>
     </button>
+    <button data-sec="news">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h13v14H6a2 2 0 0 1-2-2V5Z"/><path d="M17 9h3v8a2 2 0 0 1-2 2M7 9h6M7 13h6"/></svg>الأخبار
+    </button>
   </nav>
+  <div class="nav-overlay" id="navOverlay"></div>
 
   <main>
     <!-- ===== النشر ===== -->
@@ -117,7 +122,28 @@
       </div>
       <div id="inboxBody"></div>
     </section>
+
+    <!-- ===== الأخبار ===== -->
+    <section id="sec-news" class="card" hidden>
+      <div class="head">
+        <div><h2>الأخبار</h2><div class="sub" id="newsCount"></div></div>
+        <button class="btn primary" id="newsAdd">+ إضافة خبر جديد</button>
+      </div>
+      <div class="items" id="newsList"></div>
+    </section>
   </main>
+</div>
+
+<nav class="bnav" id="bnav" aria-label="الأقسام"></nav>
+
+<!-- نافذة الخبر -->
+<div class="modal" id="newsModal" hidden>
+  <form class="box" id="newsForm" novalidate>
+    <h3 id="nTitle">إضافة خبر جديد</h3>
+    <div class="field"><label>نص الخبر</label><textarea id="nTxt" maxlength="500" placeholder="اكتب الخبر هنا..."></textarea></div>
+    <div class="msg" id="nMsg"></div>
+    <div class="foot"><button type="button" class="btn" id="nCancel">إلغاء</button><button type="submit" class="btn primary" id="nGo">حفظ</button></div>
+  </form>
 </div>
 
 <!-- نافذة التعديل -->
@@ -186,5 +212,6 @@
 <div id="toast"></div>
 <script src="admin.js"></script>
 <script src="inbox.js"></script>
+<script src="news.js"></script>
 </body>
 </html>
