@@ -1,7 +1,7 @@
 /* ====== إعدادات Supabase ====== */
 const SUPABASE_URL = "https://cjjybcsrtbcjmnavyyph.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqanliY3NydGJjam1uYXZ5eXBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2MDM4OTMsImV4cCI6MjEwOTE3OTg5M30.o9CxuojKekGe7bVtO5h-Xzs6l7ATza4_IK85scEW228";
-const CURRENCY = "$"; // غيّر العملة من هنا
+const CURRENCY = "درهم إماراتي"; // غيّر العملة من هنا
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -43,3 +43,11 @@ function escapeHtml(s){
 }
 function escapeLike(s){ return String(s).replace(/[\\%_]/g, "\\$&"); }
 function showMsg(el, text, type){ el.textContent = text || ""; el.className = "msg " + (type || ""); }
+
+/* رابط المنتج: "iPhone 17 Pro Max" -> "iphone-17-pro-max" (يدعم العربية أيضاً) */
+function slug(t){
+  return String(t ?? "").trim().toLowerCase()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^\p{L}\p{N}-]+/gu, "")
+    .replace(/-+/g, "-").replace(/^-|-$/g, "");
+}

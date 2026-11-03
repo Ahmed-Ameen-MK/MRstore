@@ -75,13 +75,76 @@ function initSupportFab(){
 
 /* ---------- الفوتر ---------- */
 function renderFooter(){
-  const page = location.pathname.split("/").pop();
-  const links = [["privacy.html", "سياسة الخصوصية"], ["terms.html", "شروط الاستخدام"], ["about.html", "عن المتجر"]];
+  const page = location.pathname.split("/").pop().replace(/\.html$/, "");
+  const links = [["privacy.html", "privacy", "سياسة الخصوصية"], ["terms.html", "terms", "شروط الاستخدام"], ["about.html", "about", "عن المتجر"]];
   const f = document.createElement("footer");
   f.className = "site-footer";
-  f.innerHTML = `<div class="links">${links.map(([h, t]) => `<a class="btn ${page === h ? "on" : ""}" href="${h}">${t}</a>`).join("")}</div>
-                 <p>© ${new Date().getFullYear()} MR store — جميع الحقوق محفوظة</p>`;
+  f.innerHTML = `<div class="foot-in">
+      <nav class="foot-links">${links.map(([h, k, t]) => `<a class="${page === k ? "on" : ""}" href="${h}">${t}</a>`).join("")}</nav>
+      <div class="dev" id="devTxt" aria-label="Developed by 9roo"></div>
+    </div>
+    <div class="copy">© ${new Date().getFullYear()} MR store</div>`;
   document.body.appendChild(f);
+  startDevTyping(document.getElementById("devTxt"));
+}
+
+/* كتابة مباشرة:  < Developed by = "9roo" >  ثم تكبر 9roo وتعود، وتتكرر طالما الفوتر ظاهر */
+function startDevTyping(box){
+  const A = '< Developed by = "', N = "9roo", Z = '" >', FULL = A + N + Z;
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const esc = t => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  let token = 0;
+
+  function draw(n, pop){
+    const t = FULL.slice(0, n);
+    const a = t.slice(0, A.length), nm = t.slice(A.length, A.length + N.length), z = t.slice(A.length + N.length);
+    box.innerHTML = esc(a) + (nm ? `<span class="nine${pop ? " pop" : ""}">${esc(nm)}</span>` : "") + esc(z) + '<span class="caret2"></span>';
+  }
+  async function loop(my){
+    while (my === token){
+      for (let i = 1; i <= FULL.length && my === token; i++){ draw(i); await sleep(rnd(55, 150) + (Math.random() < 0.12 ? rnd(100, 220) : 0)); }
+      if (my !== token) return;
+      await sleep(350);
+      draw(FULL.length, true);  await sleep(1500);   // تكبر بشكل ملحوظ
+      if (my !== token) return;
+      draw(FULL.length, false); await sleep(2600);   // ترجع لحجمها وتبقى
+      for (let i = FULL.length; i >= 0 && my === token; i--){ draw(i); await sleep(rnd(18, 40)); }
+      await sleep(500);
+    }
+  }
+  if (!("IntersectionObserver" in window)){ loop(++token); return; }
+  new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting){ loop(++token); } else { token++; }
+  }), { threshold: 0.4 }).observe(box);
+}
+
+/* ---------- مؤثرات: ظهور تدريجي + لمعة الزجاج ---------- */
+let _revealIO = null;
+function observeReveal(root = document){
+  const els = root.querySelectorAll(".reveal:not(.in)");
+  if (!("IntersectionObserver" in window)){ els.forEach(e => e.classList.add("in")); return; }
+  if (!_revealIO) _revealIO = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting){ e.target.classList.add("in"); _revealIO.unobserve(e.target); }
+  }), { threshold: 0.08, rootMargin: "0px 0px -30px 0px" });
+  els.forEach((e, i) => { if (!e.style.getPropertyValue("--d")) e.style.setProperty("--d", Math.min(i % 8, 7) * 70 + "ms"); _revealIO.observe(e); });
+}
+function initGlass(){
+  document.addEventListener("pointermove", e => {
+    const g = e.target.closest && e.target.closest(".glass");
+    if (!g) return;
+    const r = g.getBoundingClientRect();
+    g.style.setProperty("--mx", (e.clientX - r.left) + "px");
+    g.style.setProperty("--my", (e.clientY - r.top) + "px");
+    if (g.classList.contains("tilt") && e.pointerType === "mouse"){
+      g.style.setProperty("--ry", (((e.clientX - r.left) / r.width - .5) * 7).toFixed(2) + "deg");
+      g.style.setProperty("--rx", ((.5 - (e.clientY - r.top) / r.height) * 7).toFixed(2) + "deg");
+    }
+  }, { passive: true });
+  document.addEventListener("pointerout", e => {
+    const g = e.target.closest && e.target.closest(".tilt");
+    if (g && !g.contains(e.relatedTarget)){ g.style.removeProperty("--rx"); g.style.removeProperty("--ry"); }
+  });
 }
 
 /* ---------- النوافذ المنبثقة ---------- */
@@ -153,6 +216,8 @@ function initSite(){
   renderAuthArea();
   initSupportFab();
   renderFooter();
+  initGlass();
+  observeReveal();
   refreshBadges();
   setInterval(() => { if (!document.hidden) refreshBadges(); }, 45000);
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
