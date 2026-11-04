@@ -222,3 +222,38 @@ body::before{
   .brand img{display:none}
   .auth-area{gap:3px}
 }
+
+/* ====== قائمة الحساب (الهاتف) + طلباتي ====== */
+.user-menu{position:relative;display:none}
+.u-circle{cursor:pointer;position:relative;font-family:inherit;display:none}
+.um-pop{
+  position:absolute;top:calc(100% + 8px);left:0;min-width:210px;max-width:78vw;z-index:90;
+  background:#16171a;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:6px;
+  animation:popIn .18s ease-out
+}
+.um-pop[hidden]{display:none}
+.um-name{padding:10px 12px;font-weight:800;color:#fff;border-bottom:1px solid var(--line);margin-bottom:4px;word-break:break-word;cursor:default;user-select:none}
+.um-pop button{
+  width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;border:0;background:none;
+  color:var(--text);cursor:pointer;text-align:start;font-family:inherit;font-size:.93rem;transition:.12s
+}
+.um-pop button:hover{background:var(--panel)}
+.um-pop button svg{width:18px;height:18px;flex-shrink:0}
+.um-pop button.out{color:var(--danger)}
+.badge-red.inl{position:static;margin-inline-start:auto;box-shadow:none}
+.u-circle .badge-red{top:-4px;left:-4px;min-width:14px;height:14px;line-height:14px;font-size:.6rem;padding:0 3px}
+@media (max-width:640px){
+  .auth-area .desk-only{display:none!important}
+  .user-menu{display:block}
+  .auth-area .u-circle{display:flex}
+}
+.ord{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.ord-main{display:flex;flex-direction:column;min-width:0}
+.ord-main b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ord-main small{color:var(--muted);font-size:.78rem}
+.ord-st{flex-shrink:0;border:1px solid;border-radius:999px;padding:2px 12px;font-size:.8rem;font-weight:700;white-space:nowrap}
+.ord-st.wait{color:#f0c24b;border-color:#6b5320;background:#1d1a10}
+.ord-st.red{color:var(--danger);border-color:#5a2a2e;background:#2a1618}
+.ord-st.green{color:var(--ok);border-color:#235a3a;background:#12241a}
+.txt{color:var(--text);font-family:"Cairo",system-ui,sans-serif;font-size:.95rem}
+.txt::placeholder{color:var(--muted)}
