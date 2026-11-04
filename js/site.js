@@ -5,6 +5,8 @@ const ICON_HEAD = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 const ICON_LOGOUT = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3"/><path d="m16 8 4 4-4 4M20 12H9"/></svg>';
 const ICON_DASH = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>';
 
+const ICON_BAG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>';
+
 const CHAT = {
   support: {
     title: "الدعم — اتصل بنا", ph: "اكتب رسالتك للدعم...",
@@ -37,9 +39,11 @@ function sendContact(type, content){ return rpcUser("mr_send_contact", { p_type:
 
 /* ---------- الإشعارات الحمراء ---------- */
 function setBadge(id, n){
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (n > 0){ el.textContent = n > 99 ? "99+" : n; el.hidden = false; } else el.hidden = true;
+  [id, id + "M", id + "C"].forEach(i => {
+    const el = document.getElementById(i);
+    if (!el) return;
+    if (n > 0){ el.textContent = n > 99 ? "99+" : n; el.hidden = false; } else el.hidden = true;
+  });
 }
 async function refreshBadges(){
   if (!getUser()) return;
@@ -55,16 +59,54 @@ function renderAuthArea(){
   const u = getUser(), box = document.getElementById("authArea");
   if (!box) return;
   if (u){
+    const nm = escapeHtml(u.name), ch = escapeHtml(String(u.name || "?").trim().charAt(0).toUpperCase());
     box.innerHTML =
       (u.status === "admin" ? `<a class="btn primary sq" href="admin/dashboard.html" title="لوحة التحكم" aria-label="لوحة التحكم">${ICON_DASH}<span class="hide-sm">لوحة التحكم</span></a>` : "") +
-      `<button class="icon-btn" id="msgBtn" title="الرسائل" aria-label="الرسائل">${ICON_MAIL}<span class="badge-red" id="msgBadge" hidden></span></button>
-       <div class="user-chip" title="${escapeHtml(u.name)}"><span class="hide-sm">أهلاً</span> <b class="u-name">${escapeHtml(u.name)}</b><span class="u-circle">${escapeHtml(String(u.name || "?").trim().charAt(0).toUpperCase())}</span></div>
+      `<button class="icon-btn desk-only" id="ordersBtn" title="طلباتي" aria-label="طلباتي">${ICON_BAG}</button>
+       <button class="icon-btn" id="msgBtn" title="الرسائل" aria-label="الرسائل">${ICON_MAIL}<span class="badge-red" id="msgBadge" hidden></span></button>
+       <div class="user-chip desk-only" title="${nm}"><span class="hide-sm">أهلاً</span> <b class="u-name">${nm}</b></div>
+       <div class="user-menu">
+         <button class="u-circle" id="userBtn" aria-label="الحساب" aria-haspopup="true" aria-expanded="false">${ch}</button>
+         <div class="um-pop" id="umPop" hidden>
+           <div class="um-name">${nm}</div>
+           <button type="button" id="umOrders">${ICON_BAG}<span>طلباتي</span></button>
+           <button type="button" id="umMsg">${ICON_MAIL}<span>الرسائل</span><span class="badge-red inl" id="msgBadgeM" hidden></span></button>
+           <button type="button" id="umOut" class="out">${ICON_LOGOUT}<span>تسجيل الخروج</span></button>
+         </div>
+       </div>
        <button class="btn sq" id="logoutBtn" title="خروج" aria-label="خروج">${ICON_LOGOUT}<span class="hide-sm">خروج</span></button>`;
+    const pop = document.getElementById("umPop"), ub = document.getElementById("userBtn");
+    const closePop = () => { pop.hidden = true; ub.setAttribute("aria-expanded", "false"); };
+    ub.onclick = e => { e.stopPropagation(); pop.hidden = !pop.hidden; ub.setAttribute("aria-expanded", String(!pop.hidden)); };
+    document.addEventListener("click", e => { if (!pop.hidden && !e.target.closest(".user-menu")) closePop(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closePop(); });
     document.getElementById("logoutBtn").onclick = logout;
+    document.getElementById("umOut").onclick = logout;
     document.getElementById("msgBtn").onclick = () => openChat("message");
+    document.getElementById("umMsg").onclick = () => { closePop(); openChat("message"); };
+    document.getElementById("ordersBtn").onclick = openOrders;
+    document.getElementById("umOrders").onclick = () => { closePop(); openOrders(); };
   } else {
     box.innerHTML = '<a class="btn" href="auth/login.html">Login</a><a class="btn primary" href="auth/register.html">Sign up</a>';
   }
+}
+
+/* ---------- طلباتي ---------- */
+const ORDER_ST = {
+  none:  ["في انتظار التحقق", "wait"],
+  red:   ["لم يكتمل", "red"],
+  green: ["مكتمل", "green"]
+};
+async function openOrders(){
+  const back = modal("طلباتي", '<div class="chat-empty">جاري التحميل...</div>');
+  const body = back.querySelector(".m-body");
+  try {
+    const rows = await rpcUser("mr_my_payments") || [];
+    body.innerHTML = rows.length ? rows.map(r => {
+      const [label, cls] = ORDER_ST[r.status] || ORDER_ST.none;
+      return `<div class="ord"><div class="ord-main"><b>${escapeHtml(r.product)}</b><small>${fmtTime(r.created_at)}</small></div><span class="ord-st ${cls}">${cls === "wait" ? "⏳ " : ""}${label}</span></div>`;
+    }).join("") : '<div class="chat-empty">لا توجد طلبات بعد.</div>';
+  } catch (e) { body.innerHTML = `<div class="chat-empty">تعذر التحميل: ${escapeHtml(e.message || e)}</div>`; }
 }
 
 /* ---------- زر الدعم العائم ---------- */
