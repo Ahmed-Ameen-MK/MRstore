@@ -74,10 +74,14 @@ function relCard(p){
 
   /* ====== الشراء ====== */
   const ZIINA = "https://pay.ziina.com/ar/N7311", DISCORD = "https://discord.gg/mrr";
-  const payKey = "mr_pay_" + p.id;
-  const isPaid = () => { try { return !!localStorage.getItem(payKey); } catch { return false; } };
-  const setPaid = v => { try { v ? localStorage.setItem(payKey, String(Date.now())) : localStorage.removeItem(payKey); } catch {} };
   const logo = (file, alt) => `<img src="img/${file}" alt="${alt}" onerror="this.replaceWith(document.createTextNode('${alt}'))">`;
+
+  /* آخر عملية لهذا المنتج بحالة none فقط = جاري التحقق (red / green = تبدأ الخطوة الأولى من جديد) */
+  async function hasPending(){
+    const rows = await rpcUser("mr_my_payments") || [];
+    const last = rows.find(r => r.product === p.title);   // مرتبة من الأحدث
+    return !!last && last.status === "none";
+  }
 
   function showSteps(paid){
     const back = modal("كيفية الشراء", `
@@ -86,7 +90,7 @@ function relCard(p){
         <div class="pbody">
           <h4>التوجه للدفع</h4>
           ${paid
-            ? '<p>بانتظار التحقق من الدفع... يمكنك الآن الانتقال للخطوة التالية.</p><button type="button" class="linkbtn" id="payRetry">لم يكتمل الدفع؟ أعد المحاولة</button>'
+            ? '<p>جاري التحقق من الدفع... يمكنك الآن الانتقال للخطوة التالية.</p><button type="button" class="linkbtn" id="payRetry">لم يكتمل الدفع؟ أعد المحاولة</button>'
             : `<p>ادفع قيمة المنتج بأمان عبر Ziina.</p>
                <button type="button" class="btn primary block pay-ziina" id="payBtn"><span>دفع باستخدام Ziina</span><span class="logos">${logo("ziina.png", "Ziina")}${logo("gpay.png", "Google Pay")}${logo("applepay.png", "Apple Pay")}</span></button>
                <div class="msg" id="payMsg" style="margin:8px 0 0"></div>`}
@@ -105,8 +109,7 @@ function relCard(p){
       const msg = back.querySelector("#payMsg");
       payBtn.disabled = true; showMsg(msg, "جاري تسجيل العملية...");
       try {
-        await rpcUser("mr_create_payment", { p_product: p.title });   // يسجل صفاً جديداً status = none
-        setPaid(true);
+        await rpcUser("mr_create_payment", { p_product: p.title });   // صف جديد status = none
         try { sessionStorage.setItem("mr_pay_ret", String(p.id)); } catch {}
         location.href = ZIINA;
       } catch (e) {
@@ -114,27 +117,39 @@ function relCard(p){
         payBtn.disabled = false;
       }
     };
-    if (retry) retry.onclick = () => { setPaid(false); showSteps(false); };
+    if (retry) retry.onclick = () => showSteps(false);
   }
 
-  document.getElementById("buyBtn").onclick = () => {
+  const buyBtn = document.getElementById("buyBtn");
+  buyBtn.onclick = async () => {
     const u = getUser();
     if (!u || !u.h){
       modal("شراء", `<div class="chat-empty">سجّل الدخول لإتمام عملية الشراء.<br>
         <a class="btn primary" href="auth/login.html">تسجيل الدخول</a> <a class="btn" href="auth/register.html">إنشاء حساب</a></div>`);
       return;
     }
-    if (isPaid()) return showSteps(true);
+    buyBtn.disabled = true;
+    let pending = false;
+    try { pending = await hasPending(); } catch {}
+    buyBtn.disabled = false;
+    if (pending) return showSteps(true);
     const back = modal("شراء", '<div class="chat-empty" style="font-size:1.05rem;color:var(--text)">هل تريد إتمام الدفع؟</div>',
       '<div class="row" style="margin-top:0"><button type="button" class="btn" id="buyNo">لا</button><button type="button" class="btn primary" id="buyYes">نعم</button></div>');
     back.querySelector("#buyNo").onclick = closeModal;
     back.querySelector("#buyYes").onclick = () => showSteps(false);
   };
 
-  /* الرجوع من صفحة الدفع: المرحلة الأولى ⏳ وتُفتح الثانية */
-  const returned = () => { try { const v = sessionStorage.getItem("mr_pay_ret") === String(p.id); if (v) sessionStorage.removeItem("mr_pay_ret"); return v; } catch { return false; } };
-  if (isPaid() && returned()) showSteps(true);
-  addEventListener("pageshow", e => { if (e.persisted && isPaid() && returned()) showSteps(true); });
+  /* الرجوع من صفحة الدفع: تُفتح النافذة تلقائياً إن كانت العملية بانتظار التحقق */
+  async function showIfReturned(){
+    let r = false;
+    try { r = sessionStorage.getItem("mr_pay_ret") === String(p.id); if (r) sessionStorage.removeItem("mr_pay_ret"); } catch {}
+    if (!r) return;
+    let pend = true;
+    try { pend = await hasPending(); } catch {}
+    if (pend) showSteps(true);
+  }
+  showIfReturned();
+  addEventListener("pageshow", e => { if (e.persisted) showIfReturned(); });
 })();
 </script>
 </body>
